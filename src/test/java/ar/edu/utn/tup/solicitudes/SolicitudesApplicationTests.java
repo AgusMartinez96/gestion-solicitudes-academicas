@@ -1,10 +1,10 @@
-package ar.edu.utn.tup.gestion_solicitudes_academicas;
+package ar.edu.utn.tup.solicitudes;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class GestionSolicitudesAcademicasApplicationTests {
+class SolicitudesApplicationTests {
 
 	@Test
 	void contextLoads() {

@@ -1,13 +1,13 @@
-package ar.edu.utn.tup.gestion_solicitudes_academicas;
+package ar.edu.utn.tup.solicitudes;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class GestionSolicitudesAcademicasApplication {
+public class SolicitudesApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(GestionSolicitudesAcademicasApplication.class, args);
+		SpringApplication.run(SolicitudesApplication.class, args);
 	}
 
 }
