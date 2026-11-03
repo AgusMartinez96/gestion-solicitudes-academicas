@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Utils.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report"></a> &gt; <a href="index.source.html" class="el_package">ar.edu.utn.tup.solicitudes.util</a> &gt; <span class="el_source">Utils.java</span></div><h1>Utils.java</h1><pre class="source lang-java linenums">package ar.edu.utn.tup.solicitudes.util;
+
+import java.time.LocalDateTime;
+
+<span class="nc" id="L5">public class Utils {</span>
+
+    public static int calcularDias(String tipo) {
+<span class="pc bpc" id="L8" title="4 of 6 branches missed.">        switch (tipo) {</span>
+            case &quot;CERTIFICADO_ALUMNO_REGULAR&quot;:
+<span class="nc" id="L10">                return 2;</span>
+            case &quot;CAMBIO_COMISION&quot;:
+<span class="fc" id="L12">                return 3;</span>
+            case &quot;REVISION_EXAMEN&quot;:
+<span class="fc" id="L14">                return 5;</span>
+            case &quot;OTRO&quot;:
+<span class="nc" id="L16">                return 7;</span>
+            case &quot;EQUIVALENCIA&quot;:
+<span class="nc" id="L18">                return 15;</span>
+            default:
+<span class="nc" id="L20">                return 7;</span>
+        }
+    }
+
+    public static LocalDateTime calcularVencimiento(LocalDateTime creacion, int dias) {
+<span class="fc" id="L25">        return creacion.plusDays(dias);</span>
+    }
+
+    public static void validar(String descripcion, String tipo, String prioridad, String legajo) {
+<span class="pc bpc" id="L29" title="3 of 6 branches missed.">        if (descripcion == null || descripcion.length() &lt; 10 || descripcion.length() &gt; 500) {</span>
+<span class="nc" id="L30">            throw new RuntimeException(&quot;400|La descripción debe tener entre 10 y 500 caracteres&quot;);</span>
+        }
+<span class="pc bpc" id="L32" title="2 of 6 branches missed.">        if (tipo == null || !(tipo.equals(&quot;CERTIFICADO_ALUMNO_REGULAR&quot;) || tipo.equals(&quot;REVISION_EXAMEN&quot;)</span>
+<span class="pc bpc" id="L33" title="2 of 6 branches missed.">                || tipo.equals(&quot;EQUIVALENCIA&quot;) || tipo.equals(&quot;CAMBIO_COMISION&quot;) || tipo.equals(&quot;OTRO&quot;))) {</span>
+<span class="nc" id="L34">            throw new RuntimeException(&quot;400|Tipo de solicitud inválido: &quot; + tipo);</span>
+        }
+<span class="pc bpc" id="L36" title="2 of 8 branches missed.">        if (prioridad == null || !(prioridad.equals(&quot;BAJA&quot;) || prioridad.equals(&quot;MEDIA&quot;) || prioridad.equals(&quot;ALTA&quot;))) {</span>
+<span class="nc" id="L37">            throw new RuntimeException(&quot;400|Prioridad inválida: &quot; + prioridad);</span>
+        }
+<span class="pc bpc" id="L39" title="1 of 2 branches missed.">        if (legajo == null) {</span>
+<span class="nc" id="L40">            throw new RuntimeException(&quot;404|Estudiante no encontrado: &quot; + legajo);</span>
+        }
+<span class="fc" id="L42">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

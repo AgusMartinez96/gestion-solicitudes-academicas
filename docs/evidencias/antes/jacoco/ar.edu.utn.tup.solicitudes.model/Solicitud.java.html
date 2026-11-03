@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Solicitud.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report"></a> &gt; <a href="index.source.html" class="el_package">ar.edu.utn.tup.solicitudes.model</a> &gt; <span class="el_source">Solicitud.java</span></div><h1>Solicitud.java</h1><pre class="source lang-java linenums">package ar.edu.utn.tup.solicitudes.model;
+
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+
+@Entity
+public class Solicitud {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, length = 40)
+    private String tipo;
+
+    @Column(nullable = false, length = 500)
+    private String descripcion;
+
+    @Column(nullable = false, length = 10)
+    private String prioridad;
+
+    @Column(nullable = false, length = 20)
+    private String estado;
+
+    @Column(name = &quot;fecha_creacion&quot;, nullable = false)
+    private LocalDateTime fechaCreacion;
+
+    @Column(name = &quot;fecha_vencimiento&quot;, nullable = false)
+    private LocalDateTime fechaVencimiento;
+
+    @Column(name = &quot;fecha_actualizacion&quot;)
+    private LocalDateTime fechaActualizacion;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = &quot;estudiante_id&quot;, nullable = false)
+    private Estudiante estudiante;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;responsable_id&quot;)
+    private Responsable responsable;
+
+<span class="fc" id="L50">    public Solicitud() {</span>
+<span class="fc" id="L51">    }</span>
+
+    public Long getId() {
+<span class="fc" id="L54">        return id;</span>
+    }
+
+    public void setId(Long id) {
+<span class="nc" id="L58">        this.id = id;</span>
+<span class="nc" id="L59">    }</span>
+
+    public String getTipo() {
+<span class="fc" id="L62">        return tipo;</span>
+    }
+
+    public void setTipo(String tipo) {
+<span class="fc" id="L66">        this.tipo = tipo;</span>
+<span class="fc" id="L67">    }</span>
+
+    public String getDescripcion() {
+<span class="fc" id="L70">        return descripcion;</span>
+    }
+
+    public void setDescripcion(String descripcion) {
+<span class="fc" id="L74">        this.descripcion = descripcion;</span>
+<span class="fc" id="L75">    }</span>
+
+    public String getPrioridad() {
+<span class="fc" id="L78">        return prioridad;</span>
+    }
+
+    public void setPrioridad(String prioridad) {
+<span class="fc" id="L82">        this.prioridad = prioridad;</span>
+<span class="fc" id="L83">    }</span>
+
+    public String getEstado() {
+<span class="fc" id="L86">        return estado;</span>
+    }
+
+    public void setEstado(String estado) {
+<span class="fc" id="L90">        this.estado = estado;</span>
+<span class="fc" id="L91">    }</span>
+
+    public LocalDateTime getFechaCreacion() {
+<span class="fc" id="L94">        return fechaCreacion;</span>
+    }
+
+    public void setFechaCreacion(LocalDateTime fechaCreacion) {
+<span class="fc" id="L98">        this.fechaCreacion = fechaCreacion;</span>
+<span class="fc" id="L99">    }</span>
+
+    public LocalDateTime getFechaVencimiento() {
+<span class="fc" id="L102">        return fechaVencimiento;</span>
+    }
+
+    public void setFechaVencimiento(LocalDateTime fechaVencimiento) {
+<span class="fc" id="L106">        this.fechaVencimiento = fechaVencimiento;</span>
+<span class="fc" id="L107">    }</span>
+
+    public LocalDateTime getFechaActualizacion() {
+<span class="fc" id="L110">        return fechaActualizacion;</span>
+    }
+
+    public void setFechaActualizacion(LocalDateTime fechaActualizacion) {
+<span class="fc" id="L114">        this.fechaActualizacion = fechaActualizacion;</span>
+<span class="fc" id="L115">    }</span>
+
+    public Estudiante getEstudiante() {
+<span class="fc" id="L118">        return estudiante;</span>
+    }
+
+    public void setEstudiante(Estudiante estudiante) {
+<span class="fc" id="L122">        this.estudiante = estudiante;</span>
+<span class="fc" id="L123">    }</span>
+
+    public Responsable getResponsable() {
+<span class="fc" id="L126">        return responsable;</span>
+    }
+
+    public void setResponsable(Responsable responsable) {
+<span class="fc" id="L130">        this.responsable = responsable;</span>
+<span class="fc" id="L131">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

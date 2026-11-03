@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pmd xmlns="http://pmd.sourceforge.net/report/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/report/2.0.0 https://pmd.github.io/schema/report_2_0_0.xsd" version="7.17.0" timestamp="2026-11-03T20:52:42.555">
+<file name="C:\Users\Agustin\Desktop\Metodologia\gestion-solicitudes-academicas\src\main\java\ar\edu\utn\tup\solicitudes\controller\SolicitudController.java">
+<violation beginline="35" endline="35" begincolumn="8" endcolumn="13" rule="CyclomaticComplexity" ruleset="Design" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_design.html#cyclomaticcomplexity" priority="3">
+The class 'SolicitudController' has a total cyclomatic complexity of 119 (highest 32).
+</violation>
+<violation beginline="47" endline="47" begincolumn="35" endcolumn="40" rule="NcssCount" ruleset="Design" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="crear" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_design.html#ncsscount" priority="3">
+The method 'crear(Map&lt;String, Object&gt;)' has a NCSS line count of 55.
+</violation>
+<violation beginline="47" endline="47" begincolumn="35" endcolumn="40" rule="CognitiveComplexity" ruleset="Design" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="crear" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_design.html#cognitivecomplexity" priority="3">
+The method 'crear(Map&lt;String, Object&gt;)' has a cognitive complexity of 20, current threshold is 15
+</violation>
+<violation beginline="47" endline="47" begincolumn="35" endcolumn="40" rule="CyclomaticComplexity" ruleset="Design" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="crear" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_design.html#cyclomaticcomplexity" priority="3">
+The method 'crear(Map&lt;String, Object&gt;)' has a cyclomatic complexity of 22.
+</violation>
+<violation beginline="47" endline="47" begincolumn="35" endcolumn="40" rule="NPathComplexity" ruleset="Design" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="crear" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_design.html#npathcomplexity" priority="3">
+The method 'crear(Map&lt;String, Object&gt;)' has an NPath complexity of 630, current threshold is 200
+</violation>
+<violation beginline="53" endline="53" begincolumn="13" endcolumn="19" rule="SystemPrintln" ruleset="Best Practices" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="crear" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_bestpractices.html#systemprintln" priority="2">
+Usage of System.out/err
+</violation>
+<violation beginline="88" endline="88" begincolumn="28" endcolumn="29" rule="AvoidLiteralsInIfCondition" ruleset="Error Prone" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="crear" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_errorprone.html#avoidliteralsinifcondition" priority="3">
+Avoid using literals such as 1 in if statements
+</violation>
+<violation beginline="92" endline="92" begincolumn="23" endcolumn="24" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="crear" variable="s" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like s
+</violation>
+<violation beginline="106" endline="106" begincolumn="33" endcolumn="34" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="crear" variable="e" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like e
+</violation>
+<violation beginline="111" endline="111" begincolumn="37" endcolumn="38" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="crear" variable="r" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like r
+</violation>
+<violation beginline="120" endline="120" begincolumn="18" endcolumn="27" rule="AvoidCatchingGenericException" ruleset="Design" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="crear" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_design.html#avoidcatchinggenericexception" priority="3">
+Avoid catching generic exceptions such as NullPointerException, RuntimeException, Exception in try-catch block
+</violation>
+<violation beginline="126" endline="126" begincolumn="68" endcolumn="70" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="obtener" variable="id" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like id
+</violation>
+<violation beginline="128" endline="128" begincolumn="23" endcolumn="24" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="obtener" variable="s" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like s
+</violation>
+<violation beginline="143" endline="143" begincolumn="33" endcolumn="34" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="obtener" variable="e" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like e
+</violation>
+<violation beginline="148" endline="148" begincolumn="37" endcolumn="38" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="obtener" variable="r" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like r
+</violation>
+<violation beginline="157" endline="157" begincolumn="18" endcolumn="27" rule="AvoidCatchingGenericException" ruleset="Design" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="obtener" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_design.html#avoidcatchinggenericexception" priority="3">
+Avoid catching generic exceptions such as NullPointerException, RuntimeException, Exception in try-catch block
+</violation>
+<violation beginline="163" endline="163" begincolumn="35" endcolumn="41" rule="NcssCount" ruleset="Design" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="listar" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_design.html#ncsscount" priority="3">
+The method 'listar(String, String, String, String)' has a NCSS line count of 44.
+</violation>
+<violation beginline="163" endline="163" begincolumn="35" endcolumn="41" rule="CognitiveComplexity" ruleset="Design" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="listar" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_design.html#cognitivecomplexity" priority="3">
+The method 'listar(String, String, String, String)' has a cognitive complexity of 35, current threshold is 15
+</violation>
+<violation beginline="163" endline="163" begincolumn="35" endcolumn="41" rule="CyclomaticComplexity" ruleset="Design" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="listar" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_design.html#cyclomaticcomplexity" priority="3">
+The method 'listar(String, String, String, String)' has a cyclomatic complexity of 32.
+</violation>
+<violation beginline="163" endline="163" begincolumn="35" endcolumn="41" rule="NPathComplexity" ruleset="Design" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="listar" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_design.html#npathcomplexity" priority="3">
+The method 'listar(String, String, String, String)' has an NPath complexity of 41515, current threshold is 200
+</violation>
+<violation beginline="207" endline="207" begincolumn="37" endcolumn="38" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="listar" variable="e" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like e
+</violation>
+<violation beginline="212" endline="212" begincolumn="41" endcolumn="42" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="listar" variable="r" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like r
+</violation>
+<violation beginline="223" endline="223" begincolumn="18" endcolumn="27" rule="AvoidCatchingGenericException" ruleset="Design" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="listar" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_design.html#avoidcatchinggenericexception" priority="3">
+Avoid catching generic exceptions such as NullPointerException, RuntimeException, Exception in try-catch block
+</violation>
+<violation beginline="229" endline="229" begincolumn="35" endcolumn="48" rule="NcssCount" ruleset="Design" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="cambiarEstado" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_design.html#ncsscount" priority="3">
+The method 'cambiarEstado(Long, Map&lt;String, Object&gt;)' has a NCSS line count of 41.
+</violation>
+<violation beginline="229" endline="229" begincolumn="35" endcolumn="48" rule="CognitiveComplexity" ruleset="Design" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="cambiarEstado" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_design.html#cognitivecomplexity" priority="3">
+The method 'cambiarEstado(Long, Map&lt;String, Object&gt;)' has a cognitive complexity of 15, current threshold is 15
+</violation>
+<violation beginline="229" endline="229" begincolumn="35" endcolumn="48" rule="CyclomaticComplexity" ruleset="Design" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="cambiarEstado" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_design.html#cyclomaticcomplexity" priority="3">
+The method 'cambiarEstado(Long, Map&lt;String, Object&gt;)' has a cyclomatic complexity of 20.
+</violation>
+<violation beginline="229" endline="229" begincolumn="35" endcolumn="48" rule="NPathComplexity" ruleset="Design" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="cambiarEstado" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_design.html#npathcomplexity" priority="3">
+The method 'cambiarEstado(Long, Map&lt;String, Object&gt;)' has an NPath complexity of 378, current threshold is 200
+</violation>
+<violation beginline="229" endline="229" begincolumn="74" endcolumn="76" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="cambiarEstado" variable="id" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like id
+</violation>
+<violation beginline="232" endline="232" begincolumn="23" endcolumn="24" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="cambiarEstado" variable="s" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like s
+</violation>
+<violation beginline="267" endline="267" begincolumn="33" endcolumn="34" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="cambiarEstado" variable="e" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like e
+</violation>
+<violation beginline="272" endline="272" begincolumn="37" endcolumn="38" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="cambiarEstado" variable="r" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like r
+</violation>
+<violation beginline="281" endline="281" begincolumn="18" endcolumn="27" rule="AvoidCatchingGenericException" ruleset="Design" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="cambiarEstado" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_design.html#avoidcatchinggenericexception" priority="3">
+Avoid catching generic exceptions such as NullPointerException, RuntimeException, Exception in try-catch block
+</violation>
+<violation beginline="287" endline="287" begincolumn="35" endcolumn="53" rule="NcssCount" ruleset="Design" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="asignarResponsable" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_design.html#ncsscount" priority="3">
+The method 'asignarResponsable(Long, Map&lt;String, Object&gt;)' has a NCSS line count of 43.
+</violation>
+<violation beginline="287" endline="287" begincolumn="35" endcolumn="53" rule="CyclomaticComplexity" ruleset="Design" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="asignarResponsable" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_design.html#cyclomaticcomplexity" priority="3">
+The method 'asignarResponsable(Long, Map&lt;String, Object&gt;)' has a cyclomatic complexity of 16.
+</violation>
+<violation beginline="287" endline="287" begincolumn="79" endcolumn="81" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="asignarResponsable" variable="id" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like id
+</violation>
+<violation beginline="290" endline="290" begincolumn="23" endcolumn="24" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="asignarResponsable" variable="s" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like s
+</violation>
+<violation beginline="325" endline="325" begincolumn="33" endcolumn="34" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="asignarResponsable" variable="e" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like e
+</violation>
+<violation beginline="330" endline="330" begincolumn="37" endcolumn="38" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="asignarResponsable" variable="r" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like r
+</violation>
+<violation beginline="339" endline="339" begincolumn="18" endcolumn="27" rule="AvoidCatchingGenericException" ruleset="Design" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="asignarResponsable" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_design.html#avoidcatchinggenericexception" priority="3">
+Avoid catching generic exceptions such as NullPointerException, RuntimeException, Exception in try-catch block
+</violation>
+<violation beginline="345" endline="345" begincolumn="35" endcolumn="42" rule="NcssCount" ruleset="Design" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="reporte" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_design.html#ncsscount" priority="3">
+The method 'reporte()' has a NCSS line count of 31.
+</violation>
+<violation beginline="384" endline="384" begincolumn="18" endcolumn="27" rule="AvoidCatchingGenericException" ruleset="Design" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="reporte" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_design.html#avoidcatchinggenericexception" priority="3">
+Avoid catching generic exceptions such as NullPointerException, RuntimeException, Exception in try-catch block
+</violation>
+<violation beginline="389" endline="389" begincolumn="44" endcolumn="45" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="puedeCambiar" variable="s" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like s
+</violation>
+<violation beginline="403" endline="404" begincolumn="37" endcolumn="62" rule="ExcessiveParameterList" ruleset="Design" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="armarSolicitud" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_design.html#excessiveparameterlist" priority="3">
+Avoid long parameter lists.
+</violation>
+<violation beginline="405" endline="405" begincolumn="19" endcolumn="20" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="armarSolicitud" variable="s" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like s
+</violation>
+<violation beginline="413" endline="413" begincolumn="9" endcolumn="15" rule="SystemPrintln" ruleset="Best Practices" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="armarSolicitud" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_bestpractices.html#systemprintln" priority="2">
+Usage of System.out/err
+</violation>
+<violation beginline="417" endline="417" begincolumn="55" endcolumn="56" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.controller" class="SolicitudController" method="procesar" variable="e" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like e
+</violation>
+</file>
+<file name="C:\Users\Agustin\Desktop\Metodologia\gestion-solicitudes-academicas\src\main\java\ar\edu\utn\tup\solicitudes\controller\SoporteController.java">
+<violation beginline="30" endline="30" begincolumn="33" endcolumn="34" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.controller" class="SoporteController" method="estudiantes" variable="m" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like m
+</violation>
+<violation beginline="44" endline="44" begincolumn="33" endcolumn="34" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.controller" class="SoporteController" method="responsables" variable="m" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like m
+</violation>
+</file>
+<file name="C:\Users\Agustin\Desktop\Metodologia\gestion-solicitudes-academicas\src\main\java\ar\edu\utn\tup\solicitudes\model\Estudiante.java">
+<violation beginline="14" endline="14" begincolumn="18" endcolumn="20" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.model" class="Estudiante" variable="id" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like id
+</violation>
+<violation beginline="32" endline="32" begincolumn="28" endcolumn="30" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.model" class="Estudiante" method="setId" variable="id" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like id
+</violation>
+</file>
+<file name="C:\Users\Agustin\Desktop\Metodologia\gestion-solicitudes-academicas\src\main\java\ar\edu\utn\tup\solicitudes\model\Responsable.java">
+<violation beginline="14" endline="14" begincolumn="18" endcolumn="20" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.model" class="Responsable" variable="id" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like id
+</violation>
+<violation beginline="32" endline="32" begincolumn="28" endcolumn="30" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.model" class="Responsable" method="setId" variable="id" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like id
+</violation>
+</file>
+<file name="C:\Users\Agustin\Desktop\Metodologia\gestion-solicitudes-academicas\src\main\java\ar\edu\utn\tup\solicitudes\model\Solicitud.java">
+<violation beginline="19" endline="19" begincolumn="18" endcolumn="20" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.model" class="Solicitud" variable="id" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like id
+</violation>
+<violation beginline="57" endline="57" begincolumn="28" endcolumn="30" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.model" class="Solicitud" method="setId" variable="id" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like id
+</violation>
+</file>
+<file name="C:\Users\Agustin\Desktop\Metodologia\gestion-solicitudes-academicas\src\main\java\ar\edu\utn\tup\solicitudes\util\NotificadorConsola.java">
+<violation beginline="6" endline="6" begincolumn="9" endcolumn="15" rule="SystemPrintln" ruleset="Best Practices" package="ar.edu.utn.tup.solicitudes.util" class="NotificadorConsola" method="notificar" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_bestpractices.html#systemprintln" priority="2">
+Usage of System.out/err
+</violation>
+</file>
+<file name="C:\Users\Agustin\Desktop\Metodologia\gestion-solicitudes-academicas\src\main\java\ar\edu\utn\tup\solicitudes\util\Utils.java">
+<violation beginline="28" endline="28" begincolumn="24" endcolumn="31" rule="CyclomaticComplexity" ruleset="Design" package="ar.edu.utn.tup.solicitudes.util" class="Utils" method="validar" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_design.html#cyclomaticcomplexity" priority="3">
+The method 'validar(String, String, String, String)' has a cyclomatic complexity of 19.
+</violation>
+</file>
+</pmd>

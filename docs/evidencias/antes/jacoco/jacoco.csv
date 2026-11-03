@@ -1,0 +1,9 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+,ar.edu.utn.tup.solicitudes.util,NotificadorConsola,0,9,0,0,0,3,0,2,0,2
+,ar.edu.utn.tup.solicitudes.util,Utils,34,66,14,20,9,10,15,8,1,3
+,ar.edu.utn.tup.solicitudes.controller,SoporteController,103,3,4,0,20,1,4,1,2,1
+,ar.edu.utn.tup.solicitudes.controller,SolicitudController,166,1428,83,135,24,261,71,48,0,10
+,ar.edu.utn.tup.solicitudes.model,Solicitud,4,69,0,0,2,30,1,20,1,20
+,ar.edu.utn.tup.solicitudes.model,Estudiante,19,12,0,0,9,5,5,4,5,4
+,ar.edu.utn.tup.solicitudes.model,Responsable,16,15,0,0,8,6,4,5,4,5
+,ar.edu.utn.tup.solicitudes,SolicitudesApplication,5,3,0,0,2,1,1,1,1,1
