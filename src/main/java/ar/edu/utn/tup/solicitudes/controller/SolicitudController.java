@@ -14,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,9 +22,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ar.edu.utn.tup.solicitudes.model.Estudiante;
+import ar.edu.utn.tup.solicitudes.model.Responsable;
 import ar.edu.utn.tup.solicitudes.model.Solicitud;
 import ar.edu.utn.tup.solicitudes.repository.EstudianteRepository;
+import ar.edu.utn.tup.solicitudes.repository.ResponsableRepository;
 import ar.edu.utn.tup.solicitudes.repository.SolicitudRepository;
+import ar.edu.utn.tup.solicitudes.util.NotificadorConsola;
 import ar.edu.utn.tup.solicitudes.util.Utils;
 
 @RestController
@@ -35,6 +39,9 @@ public class SolicitudController {
 
     @Autowired
     private EstudianteRepository estudianteRepository;
+
+    @Autowired
+    private ResponsableRepository responsableRepository;
 
     @PostMapping("/api/solicitudes")
     public ResponseEntity<Object> crear(@RequestBody Map<String, Object> body) {
@@ -216,6 +223,136 @@ public class SolicitudController {
         } catch (Exception e) {
             return procesar(e);
         }
+    }
+
+    @PatchMapping("/api/solicitudes/{id}/estado")
+    public ResponseEntity<Object> cambiarEstado(@PathVariable("id") Long id,
+            @RequestBody Map<String, Object> body) {
+        try {
+            Solicitud s = solicitudRepository.findById(id).orElse(null);
+            if (s == null) {
+                throw new RuntimeException("404|Solicitud no encontrada: " + id);
+            }
+            String nuevo = (String) body.get("estado");
+            if (nuevo == null || !(nuevo.equals("PENDIENTE") || nuevo.equals("EN_ANALISIS")
+                    || nuevo.equals("RESUELTA") || nuevo.equals("RECHAZADA") || nuevo.equals("CANCELADA"))) {
+                throw new RuntimeException("400|Estado inválido: " + nuevo);
+            }
+            if (!puedeCambiar(s, nuevo)) {
+                throw new RuntimeException("409|Transición inválida: " + s.getEstado() + " -> " + nuevo);
+            }
+            if ((nuevo.equals("RESUELTA") || nuevo.equals("RECHAZADA")) && s.getResponsable() == null) {
+                throw new RuntimeException(
+                        "409|La solicitud requiere un responsable asignado para pasar a " + nuevo);
+            }
+            s.setEstado(nuevo);
+            s.setFechaActualizacion(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+            s = solicitudRepository.save(s);
+            if (s.getEstado().equals("RESUELTA") || s.getEstado().equals("RECHAZADA")) {
+                new NotificadorConsola().notificar(s.getEstudiante().getEmail(),
+                        "Su solicitud " + s.getId() + " fue " + s.getEstado());
+            }
+
+            Map<String, Object> res = new LinkedHashMap<>();
+            res.put("id", s.getId());
+            res.put("tipo", s.getTipo());
+            res.put("descripcion", s.getDescripcion());
+            res.put("prioridad", s.getPrioridad());
+            res.put("estado", s.getEstado());
+            res.put("fechaCreacion", s.getFechaCreacion());
+            res.put("fechaVencimiento", s.getFechaVencimiento());
+            res.put("fechaActualizacion", s.getFechaActualizacion());
+            res.put("vencida", !(s.getEstado().equals("RESUELTA") || s.getEstado().equals("RECHAZADA")
+                    || s.getEstado().equals("CANCELADA")) && s.getFechaVencimiento().isBefore(LocalDateTime.now()));
+            Map<String, Object> e = new LinkedHashMap<>();
+            e.put("legajo", s.getEstudiante().getLegajo());
+            e.put("nombre", s.getEstudiante().getNombre());
+            res.put("estudiante", e);
+            if (s.getResponsable() != null) {
+                Map<String, Object> r = new LinkedHashMap<>();
+                r.put("id", s.getResponsable().getId());
+                r.put("nombre", s.getResponsable().getNombre());
+                r.put("area", s.getResponsable().getArea());
+                res.put("responsable", r);
+            } else {
+                res.put("responsable", null);
+            }
+            return ResponseEntity.ok(res);
+        } catch (Exception e) {
+            return procesar(e);
+        }
+    }
+
+    @PatchMapping("/api/solicitudes/{id}/responsable")
+    public ResponseEntity<Object> asignarResponsable(@PathVariable("id") Long id,
+            @RequestBody Map<String, Object> body) {
+        try {
+            Solicitud s = solicitudRepository.findById(id).orElse(null);
+            if (s == null) {
+                throw new RuntimeException("404|Solicitud no encontrada: " + id);
+            }
+            if (s.getEstado().equals("RESUELTA") || s.getEstado().equals("RECHAZADA")
+                    || s.getEstado().equals("CANCELADA")) {
+                throw new RuntimeException("409|La solicitud está cerrada: " + id);
+            }
+            Object dato = body.get("responsableId");
+            Long idResp = dato == null ? null : Long.valueOf(dato.toString());
+            Responsable resp = idResp == null ? null : responsableRepository.findById(idResp).orElse(null);
+            if (resp == null) {
+                throw new RuntimeException("404|Responsable no encontrado: " + idResp);
+            }
+            if (!resp.isActivo()) {
+                throw new RuntimeException("409|El responsable no está activo: " + idResp);
+            }
+            s.setResponsable(resp);
+            if (s.getEstado().equals("PENDIENTE")) {
+                s.setEstado("EN_ANALISIS");
+                s.setFechaActualizacion(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+            }
+            s = solicitudRepository.save(s);
+
+            Map<String, Object> res = new LinkedHashMap<>();
+            res.put("id", s.getId());
+            res.put("tipo", s.getTipo());
+            res.put("descripcion", s.getDescripcion());
+            res.put("prioridad", s.getPrioridad());
+            res.put("estado", s.getEstado());
+            res.put("fechaCreacion", s.getFechaCreacion());
+            res.put("fechaVencimiento", s.getFechaVencimiento());
+            res.put("fechaActualizacion", s.getFechaActualizacion());
+            res.put("vencida", !(s.getEstado().equals("RESUELTA") || s.getEstado().equals("RECHAZADA")
+                    || s.getEstado().equals("CANCELADA")) && s.getFechaVencimiento().isBefore(LocalDateTime.now()));
+            Map<String, Object> e = new LinkedHashMap<>();
+            e.put("legajo", s.getEstudiante().getLegajo());
+            e.put("nombre", s.getEstudiante().getNombre());
+            res.put("estudiante", e);
+            if (s.getResponsable() != null) {
+                Map<String, Object> r = new LinkedHashMap<>();
+                r.put("id", s.getResponsable().getId());
+                r.put("nombre", s.getResponsable().getNombre());
+                r.put("area", s.getResponsable().getArea());
+                res.put("responsable", r);
+            } else {
+                res.put("responsable", null);
+            }
+            return ResponseEntity.ok(res);
+        } catch (Exception e) {
+            return procesar(e);
+        }
+    }
+
+    private boolean puedeCambiar(Solicitud s, String nuevo) {
+        String actual = s.getEstado();
+        if (actual.equals("PENDIENTE")) {
+            if (nuevo.equals("EN_ANALISIS") || nuevo.equals("CANCELADA")) {
+                return true;
+            }
+        } else if (actual.equals("EN_ANALISIS")) {
+            if (nuevo.equals("RESUELTA") || nuevo.equals("RECHAZADA")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private Solicitud armarSolicitud(String legajo, String tipo, String descripcion, String prioridad,
