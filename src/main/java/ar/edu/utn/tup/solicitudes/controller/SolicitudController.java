@@ -341,6 +341,51 @@ public class SolicitudController {
         }
     }
 
+    @GetMapping("/api/reportes/resumen")
+    public ResponseEntity<Object> reporte() {
+        try {
+            List<Solicitud> todas = solicitudRepository.findAll();
+            Map<String, Object> res = new LinkedHashMap<>();
+            res.put("total", todas.size());
+
+            Map<String, Integer> porEstado = new LinkedHashMap<>();
+            porEstado.put("PENDIENTE", 0);
+            porEstado.put("EN_ANALISIS", 0);
+            porEstado.put("RESUELTA", 0);
+            porEstado.put("RECHAZADA", 0);
+            porEstado.put("CANCELADA", 0);
+            for (Solicitud s : todas) {
+                porEstado.put(s.getEstado(), porEstado.get(s.getEstado()) + 1);
+            }
+            res.put("porEstado", porEstado);
+
+            Map<String, Integer> porTipo = new LinkedHashMap<>();
+            porTipo.put("CERTIFICADO_ALUMNO_REGULAR", 0);
+            porTipo.put("REVISION_EXAMEN", 0);
+            porTipo.put("EQUIVALENCIA", 0);
+            porTipo.put("CAMBIO_COMISION", 0);
+            porTipo.put("OTRO", 0);
+            for (Solicitud s : todas) {
+                porTipo.put(s.getTipo(), porTipo.get(s.getTipo()) + 1);
+            }
+            res.put("porTipo", porTipo);
+
+            int vencidas = 0;
+            for (Solicitud s : todas) {
+                if (!(s.getEstado().equals("RESUELTA") || s.getEstado().equals("RECHAZADA")
+                        || s.getEstado().equals("CANCELADA"))) {
+                    if (s.getFechaVencimiento().isBefore(LocalDateTime.now())) {
+                        vencidas++;
+                    }
+                }
+            }
+            res.put("vencidas", vencidas);
+            return ResponseEntity.ok(res);
+        } catch (Exception e) {
+            return procesar(e);
+        }
+    }
+
     private boolean puedeCambiar(Solicitud s, String nuevo) {
         String actual = s.getEstado();
         if (actual.equals("PENDIENTE")) {
