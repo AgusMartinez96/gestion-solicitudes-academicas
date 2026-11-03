@@ -9,10 +9,10 @@
 | Build | **Maven con wrapper** (`mvnw.cmd`) | No requiere instalar Maven. |
 | Persistencia | **Spring Data JPA + H2 en memoria** | Cero instalación; la consigna admite "base de datos o memoria estructurada". |
 | Validación | Validación **manual** en v1; **Jakarta Bean Validation** (`spring-boot-starter-validation`) en v2 | La migración de validación manual a declarativa es parte del refactoring. |
-| Documentación API | **springdoc-openapi-starter-webmvc-ui 3.x** (la línea 3.x es la compatible con Spring Boot 4; la 2.x es para Boot 3 y NO funciona) | Swagger UI para la demo y el video. |
+| Documentación API | **springdoc-openapi-starter-webmvc-ui 3.2.0** (la línea 3.x es la compatible con Spring Boot 4; la 2.x es para Boot 3 y NO funciona; la 3.2.0 está construida sobre Boot 4.1.2) | Swagger UI para la demo y el video. |
 | Tests | **JUnit 5 + MockMvc + AssertJ** (incluidos en `spring-boot-starter-test`) | Tests de caracterización a nivel HTTP + unitarios de dominio. |
-| Cobertura | **JaCoCo** (`jacoco-maven-plugin` 0.8.12) | Evidencia de cobertura antes/después. |
-| Análisis estático | **PMD** (`maven-pmd-plugin` 3.24.x) con ruleset `quickstart` + reglas de diseño | Evidencia cuantitativa de smells antes/después ("informe de herramientas"). |
+| Cobertura | **JaCoCo** (`jacoco-maven-plugin` 0.8.16) | Evidencia de cobertura antes/después. |
+| Análisis estático | **PMD** (`maven-pmd-plugin` 3.28.0, que usa PMD 7.17.0) con ruleset `quickstart` + reglas de diseño | Evidencia cuantitativa de smells antes/después ("informe de herramientas"). |
 | Lombok | **NO usar** | Se quiere ver explícitamente constructores, getters y responsabilidades. |
 
 ## 1.1 Atención: Spring Boot 4 (no 3)

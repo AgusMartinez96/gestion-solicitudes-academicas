@@ -26,9 +26,9 @@
 
 Tareas:
 1. Revisar el `pom.xml` y agregar:
-   - `org.springdoc:springdoc-openapi-starter-webmvc-ui` (línea **3.x**, la compatible con Spring Boot 4; ver `02-TRD.md` §1.1).
-   - Plugin `jacoco-maven-plugin` 0.8.12 con goals `prepare-agent` y `report` (fase `test`).
-   - Plugin `maven-pmd-plugin` (3.24.x) apuntando a `config/pmd/ruleset.xml`, con `failOnViolation=false`, `linkXRef=false` y reporte HTML.
+   - `org.springdoc:springdoc-openapi-starter-webmvc-ui` (versión **3.2.0**, línea 3.x compatible con Spring Boot 4; ver `02-TRD.md` §1.1).
+   - Plugin `jacoco-maven-plugin` 0.8.16 con goals `prepare-agent` y `report` (fase `test`).
+   - Plugin `maven-pmd-plugin` (3.28.0) apuntando a `config/pmd/ruleset.xml`, con `failOnViolation=false`, `linkXRef=false` y reporte HTML.
 2. Crear `config/pmd/ruleset.xml` con las reglas de `02-TRD.md` §4.
 3. Escribir `application.properties` según `02-TRD.md` §3.
 4. Crear la estructura vacía: `docs/tpi/`, `docs/tpi/decisiones/`, `docs/evidencias/antes/`, `docs/evidencias/despues/`, `docs/ia/` (con un `.gitkeep` donde haga falta).
@@ -76,7 +76,7 @@ Tareas:
 4. Copiar a `docs/evidencias/antes/`:
    - `target/surefire-reports/*.txt` → `docs/evidencias/antes/surefire/`
    - `target/site/jacoco/` → `docs/evidencias/antes/jacoco/`
-   - `target/site/pmd.html` y `target/pmd.xml` → `docs/evidencias/antes/pmd/`
+   - `target/reports/pmd.html` y `target/pmd.xml` → `docs/evidencias/antes/pmd/`
    (En Windows/PowerShell usar `Copy-Item -Recurse`.)
 5. Crear `docs/pruebas/casos-de-prueba.md` con la tabla CP y una columna "Resultado v1" = ✅.
 

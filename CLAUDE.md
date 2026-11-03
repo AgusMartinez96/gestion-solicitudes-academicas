@@ -77,7 +77,7 @@ Todos se ejecutan en la **terminal integrada de VS Code (PowerShell)**, parado e
 | Compilar y correr tests | `.\mvnw.cmd test` |
 | Levantar la app | `.\mvnw.cmd spring-boot:run` |
 | Reporte de cobertura (JaCoCo) | `.\mvnw.cmd test jacoco:report` → `target\site\jacoco\index.html` |
-| Análisis estático (PMD) | `.\mvnw.cmd pmd:pmd` → `target\site\pmd.html` |
+| Análisis estático (PMD) | `.\mvnw.cmd pmd:pmd` → `target\reports\pmd.html` |
 | Swagger UI | http://localhost:8080/swagger-ui.html |
 | Consola H2 | http://localhost:8080/h2-console (JDBC URL: `jdbc:h2:mem:solicitudes`, user `sa`, sin password) |
 
