@@ -1,7 +1,7 @@
 package ar.edu.utn.tup.solicitudes.aplicacion;
 
-import ar.edu.utn.tup.solicitudes.model.Prioridad;
-import ar.edu.utn.tup.solicitudes.model.TipoSolicitud;
+import ar.edu.utn.tup.solicitudes.dominio.Prioridad;
+import ar.edu.utn.tup.solicitudes.dominio.TipoSolicitud;
 
 public record NuevaSolicitud(String legajo, TipoSolicitud tipo, String descripcion, Prioridad prioridad) {
 

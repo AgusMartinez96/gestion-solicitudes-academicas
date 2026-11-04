@@ -1,4 +1,4 @@
-package ar.edu.utn.tup.solicitudes.controller;
+package ar.edu.utn.tup.solicitudes.web;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -9,10 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import ar.edu.utn.tup.solicitudes.model.Estudiante;
-import ar.edu.utn.tup.solicitudes.model.Responsable;
-import ar.edu.utn.tup.solicitudes.repository.EstudianteRepository;
-import ar.edu.utn.tup.solicitudes.repository.ResponsableRepository;
+import ar.edu.utn.tup.solicitudes.dominio.Estudiante;
+import ar.edu.utn.tup.solicitudes.dominio.Responsable;
+import ar.edu.utn.tup.solicitudes.persistencia.EstudianteRepository;
+import ar.edu.utn.tup.solicitudes.persistencia.ResponsableRepository;
 
 @RestController
 public class SoporteController {

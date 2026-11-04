@@ -9,13 +9,13 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import ar.edu.utn.tup.solicitudes.model.EstadoSolicitud;
-import ar.edu.utn.tup.solicitudes.model.Estudiante;
-import ar.edu.utn.tup.solicitudes.model.Responsable;
-import ar.edu.utn.tup.solicitudes.model.Solicitud;
-import ar.edu.utn.tup.solicitudes.repository.EstudianteRepository;
-import ar.edu.utn.tup.solicitudes.repository.ResponsableRepository;
-import ar.edu.utn.tup.solicitudes.repository.SolicitudRepository;
+import ar.edu.utn.tup.solicitudes.dominio.EstadoSolicitud;
+import ar.edu.utn.tup.solicitudes.dominio.Estudiante;
+import ar.edu.utn.tup.solicitudes.dominio.Responsable;
+import ar.edu.utn.tup.solicitudes.dominio.Solicitud;
+import ar.edu.utn.tup.solicitudes.persistencia.EstudianteRepository;
+import ar.edu.utn.tup.solicitudes.persistencia.ResponsableRepository;
+import ar.edu.utn.tup.solicitudes.persistencia.SolicitudRepository;
 import ar.edu.utn.tup.solicitudes.util.NotificadorConsola;
 import ar.edu.utn.tup.solicitudes.util.Utils;
 

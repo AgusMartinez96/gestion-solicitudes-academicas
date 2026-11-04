@@ -8,10 +8,10 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import ar.edu.utn.tup.solicitudes.model.EstadoSolicitud;
-import ar.edu.utn.tup.solicitudes.model.Solicitud;
-import ar.edu.utn.tup.solicitudes.model.TipoSolicitud;
-import ar.edu.utn.tup.solicitudes.repository.SolicitudRepository;
+import ar.edu.utn.tup.solicitudes.dominio.EstadoSolicitud;
+import ar.edu.utn.tup.solicitudes.dominio.Solicitud;
+import ar.edu.utn.tup.solicitudes.dominio.TipoSolicitud;
+import ar.edu.utn.tup.solicitudes.persistencia.SolicitudRepository;
 
 @Service
 @Transactional

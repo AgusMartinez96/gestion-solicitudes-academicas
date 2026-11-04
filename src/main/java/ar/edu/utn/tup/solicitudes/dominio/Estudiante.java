@@ -1,4 +1,4 @@
-package ar.edu.utn.tup.solicitudes.model;
+package ar.edu.utn.tup.solicitudes.dominio;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

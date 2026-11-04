@@ -1,9 +1,9 @@
 package ar.edu.utn.tup.solicitudes.aplicacion;
 
-import ar.edu.utn.tup.solicitudes.model.EstadoSolicitud;
-import ar.edu.utn.tup.solicitudes.model.Prioridad;
-import ar.edu.utn.tup.solicitudes.model.Solicitud;
-import ar.edu.utn.tup.solicitudes.model.TipoSolicitud;
+import ar.edu.utn.tup.solicitudes.dominio.EstadoSolicitud;
+import ar.edu.utn.tup.solicitudes.dominio.Prioridad;
+import ar.edu.utn.tup.solicitudes.dominio.Solicitud;
+import ar.edu.utn.tup.solicitudes.dominio.TipoSolicitud;
 
 public record FiltroSolicitudes(EstadoSolicitud estado, TipoSolicitud tipo, Prioridad prioridad, String legajo) {
 

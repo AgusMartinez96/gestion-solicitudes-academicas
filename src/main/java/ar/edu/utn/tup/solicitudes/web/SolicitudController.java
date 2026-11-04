@@ -1,4 +1,4 @@
-package ar.edu.utn.tup.solicitudes.controller;
+package ar.edu.utn.tup.solicitudes.web;
 
 import java.util.List;
 
@@ -16,8 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ar.edu.utn.tup.solicitudes.aplicacion.FiltroSolicitudes;
 import ar.edu.utn.tup.solicitudes.aplicacion.NuevaSolicitud;
 import ar.edu.utn.tup.solicitudes.aplicacion.SolicitudService;
-import ar.edu.utn.tup.solicitudes.model.Solicitud;
-import ar.edu.utn.tup.solicitudes.web.SolicitudMapper;
+import ar.edu.utn.tup.solicitudes.dominio.Solicitud;
 import ar.edu.utn.tup.solicitudes.web.dto.AsignarResponsableRequest;
 import ar.edu.utn.tup.solicitudes.web.dto.CambiarEstadoRequest;
 import ar.edu.utn.tup.solicitudes.web.dto.RegistrarSolicitudRequest;

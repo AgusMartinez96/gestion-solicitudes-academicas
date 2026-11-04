@@ -351,3 +351,48 @@
 - **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0` + verificación por HTTP descripta arriba.
 - **Fuera de alcance de la parte A:** `catch (Exception)` y el parseo de `"404|..."` (R07); `new NotificadorConsola()`, `LocalDateTime.now()`, `Utils` (R08); `System.out`, nombres cortos y el bloque comentado (R09); `SoporteController` sigue con `@Autowired` y mapeo propio.
 - **Commit:** _(se completa al terminar la tanda)_
+
+### R06 · Parte B — Reorganizar los paquetes por capas
+
+- **Smell(s):** S01 (responsabilidades mezcladas a nivel de módulo) · **Principio:** SRP / modularidad, separación en capas con dependencias hacia el dominio.
+- **Motivación:** después de la parte A las clases estaban repartidas entre los paquetes de la v1 (`model`, `repository`, `controller`, `util`) y los nuevos (`aplicacion`, `web`, `web/dto`). La estructura debía coincidir con `docs/04-diseno.md` §3.
+- **Antes (`1c8d5af`):**
+  ```
+  solicitudes/
+  ├── model/        Solicitud, Estudiante, Responsable, EstadoSolicitud, TipoSolicitud, Prioridad
+  ├── repository/   SolicitudRepository, EstudianteRepository, ResponsableRepository
+  ├── controller/   SolicitudController, SoporteController
+  ├── util/         Utils, NotificadorConsola
+  ├── aplicacion/   (nuevos) SolicitudService, ReporteService, ReporteResumen, NuevaSolicitud, FiltroSolicitudes
+  └── web/          (nuevos) ReporteController, SolicitudMapper, dto/
+  ```
+- **Después:**
+  ```
+  solicitudes/
+  ├── SolicitudesApplication
+  ├── dominio/       Solicitud, Estudiante, Responsable, EstadoSolicitud, TipoSolicitud, Prioridad
+  ├── aplicacion/    SolicitudService, ReporteService, ReporteResumen, NuevaSolicitud, FiltroSolicitudes
+  ├── persistencia/  SolicitudRepository, EstudianteRepository, ResponsableRepository
+  ├── web/           SolicitudController, ReporteController, SoporteController, SolicitudMapper
+  │   └── dto/       RegistrarSolicitudRequest, CambiarEstadoRequest, AsignarResponsableRequest
+  └── util/          Utils, NotificadorConsola   (transitorio)
+  ```
+  - `model/` → `dominio/`, `repository/` → `persistencia/` y `controller/` → `web/` con `git mv`, de modo que Git registra renombres y conserva el historial de cada archivo; luego se actualizaron los `package` e `import`.
+  - Se eliminó el import redundante de `SolicitudMapper` en `SolicitudController`, que ahora comparte paquete con él.
+  - Las clases nuevas de la parte A y de R05 ya se habían creado en su paquete definitivo, así que este commit solo mueve clases existentes.
+- **Lo que todavía no coincide con §3, y por qué:**
+  - `util/` (`Utils`, `NotificadorConsola`) no existe en el diseño final: `Utils` y `NotificadorConsola` desaparecen en R08 (reemplazados por `Clock` y `Notificador`/`NotificadorLog`).
+  - `config/` (`ClockConfig`) nace en R08, que introduce el bean `Clock`. `dominio/excepciones/` y `ManejadorGlobalErrores` nacen en R07.
+  - Las respuestas siguen siendo `Map<String, Object>` generados por `SolicitudMapper`; los DTOs de respuesta de `web/dto/` (`SolicitudResponse`, etc.) no se crearon todavía.
+- **Verificación en Swagger** (contraste con `docs/evidencias/antes/capturas/01-swagger-endpoints.png`, donde `GET /api/reportes/resumen` estaba dentro de `solicitud-controller`). `GET /v3/api-docs` agrupa ahora:
+
+  | Grupo (tag) | Endpoints |
+  |---|---|
+  | `solicitud-controller` | `GET` y `POST /api/solicitudes`, `GET /api/solicitudes/{id}`, `PATCH /api/solicitudes/{id}/estado`, `PATCH /api/solicitudes/{id}/responsable` |
+  | `reporte-controller` | `GET /api/reportes/resumen` |
+  | `soporte-controller` | `GET /api/estudiantes`, `GET /api/responsables` |
+
+  📸 [CAPTURA PENDIENTE: Swagger UI con `reporte-controller` separado, para guardar como `docs/evidencias/despues/capturas/01-swagger-endpoints.png`]
+- **Pasos seguros aplicados:** (1) mover los archivos con `git mv`; (2) reemplazar los nombres de paquete con una sola sustitución sobre `src/main`; (3) borrar el import redundante; (4) compilar y ejecutar los tests; (5) levantar la app y repetir las pruebas HTTP (GET con y sin responsable, `PATCH` de estado y responsable, `POST`, reporte, soporte), sin errores de sesión en el log.
+- **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`. `src/test/` no se modificó.
+- **Commit:** _(se completa al terminar la tanda)_

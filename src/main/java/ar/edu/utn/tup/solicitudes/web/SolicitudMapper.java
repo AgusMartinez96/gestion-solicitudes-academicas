@@ -10,12 +10,12 @@ import org.springframework.stereotype.Component;
 
 import ar.edu.utn.tup.solicitudes.aplicacion.NuevaSolicitud;
 import ar.edu.utn.tup.solicitudes.aplicacion.ReporteResumen;
-import ar.edu.utn.tup.solicitudes.model.EstadoSolicitud;
-import ar.edu.utn.tup.solicitudes.model.Estudiante;
-import ar.edu.utn.tup.solicitudes.model.Prioridad;
-import ar.edu.utn.tup.solicitudes.model.Responsable;
-import ar.edu.utn.tup.solicitudes.model.Solicitud;
-import ar.edu.utn.tup.solicitudes.model.TipoSolicitud;
+import ar.edu.utn.tup.solicitudes.dominio.EstadoSolicitud;
+import ar.edu.utn.tup.solicitudes.dominio.Estudiante;
+import ar.edu.utn.tup.solicitudes.dominio.Prioridad;
+import ar.edu.utn.tup.solicitudes.dominio.Responsable;
+import ar.edu.utn.tup.solicitudes.dominio.Solicitud;
+import ar.edu.utn.tup.solicitudes.dominio.TipoSolicitud;
 import ar.edu.utn.tup.solicitudes.web.dto.RegistrarSolicitudRequest;
 
 @Component
