@@ -99,7 +99,7 @@ ar.edu.utn.tup.solicitudes
     ├── SolicitudMapper.java             (único lugar de mapeo dominio→DTO)
     ├── ManejadorGlobalErrores.java      (@RestControllerAdvice)
     └── dto/
-        ├── RegistrarSolicitudRequest.java   (record + Bean Validation)
+        ├── RegistrarSolicitudRequest.java   (record; sin Bean Validation, ver ADR-005)
         ├── CambiarEstadoRequest.java
         ├── AsignarResponsableRequest.java
         ├── SolicitudResponse.java
@@ -191,3 +191,4 @@ Orden pensado para que **cada paso sea chico y los tests sigan en verde**.
 - ADR-002: Mantener el filtrado en memoria a través de `FiltroSolicitudes.coincideCon()` en lugar de Specifications de JPA (volumen chico; se deja como mejora futura).
 - ADR-003: Cambio del formato del cuerpo de error a JSON (`ErrorResponse`), único cambio externo intencional.
 - ADR-004: H2 en memoria (la consigna admite persistencia simulada; facilita la reproducibilidad de la corrección).
+- ADR-005: Validación de entrada manual y centralizada en lugar de Jakarta Bean Validation (decisión del code review, observación O-3).
