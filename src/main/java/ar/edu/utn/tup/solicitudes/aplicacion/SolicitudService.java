@@ -52,7 +52,7 @@ public class SolicitudService {
 
     public List<SolicitudDetalle> buscar(FiltroSolicitudes filtro) {
         List<Solicitud> coincidentes = new ArrayList<>();
-        for (Solicitud solicitud : solicitudRepository.findAll()) {
+        for (Solicitud solicitud : solicitudRepository.findAllConDetalle()) {
             if (filtro.coincideCon(solicitud)) {
                 coincidentes.add(solicitud);
             }
@@ -81,7 +81,7 @@ public class SolicitudService {
     }
 
     private Solicitud buscarSolicitud(Long solicitudId) {
-        return solicitudRepository.findById(solicitudId).orElseThrow(
+        return solicitudRepository.findDetalleById(solicitudId).orElseThrow(
                 () -> new RecursoNoEncontradoException("Solicitud no encontrada: " + solicitudId));
     }
 

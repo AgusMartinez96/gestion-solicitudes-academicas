@@ -5,16 +5,19 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import ar.edu.utn.tup.solicitudes.dominio.Solicitud;
 
 public interface SolicitudRepository extends JpaRepository<Solicitud, Long> {
 
-    @Override
-    @EntityGraph(attributePaths = { "estudiante", "responsable" })
-    Optional<Solicitud> findById(Long solicitudId);
+    // Con open-in-view=false la sesión se cierra al terminar el service. Estos métodos traen estudiante y
+    // responsable en la misma consulta para que el mapper web no dispare una LazyInitializationException.
 
-    @Override
     @EntityGraph(attributePaths = { "estudiante", "responsable" })
-    List<Solicitud> findAll();
+    Optional<Solicitud> findDetalleById(Long solicitudId);
+
+    @EntityGraph(attributePaths = { "estudiante", "responsable" })
+    @Query("select s from Solicitud s")
+    List<Solicitud> findAllConDetalle();
 }
