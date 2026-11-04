@@ -79,8 +79,12 @@ _(El autor puede ajustar esta tabla con las unidades y los autores de la bibliog
 
 ## 7. Conclusión individual
 
-_(la escribe el autor)_
+Lo que más me sorprendió fue comprobar que un sistema puede funcionar perfecto desde afuera y, aun así, ser muy caro de cambiar: agregar un tipo de solicitud nuevo en la v1 obligaba a tocar 6 lugares, y en la v2 es una sola línea. También me sorprendió que los 15 tests de caracterización pasaran en verde mientras la aplicación real fallaba con un error 500 (la LazyInitializationException de R06). Entendí que una red de seguridad protege lo que mide y nada más, y por eso agregué tests de integración no transaccionales que sí lo detectan.
+
+Lo que más me costó fue el volumen del trabajo, mayor del que esperaba, y el flujo profesional con Git y GitHub: ramas, tags por etapa, Pull Request, comentarios en línea y merge. También decidir con criterio propio qué observaciones del code review aceptar y cuáles rechazar, en lugar de aceptar todo lo que proponía la herramienta.
+
+En un proyecto real haría distinto: escribir los tests de caracterización y de integración desde el principio, antes de que el código crezca; trabajar con Pull Requests más chicos (uno por refactoring o por tanda) en lugar de uno grande, para que la revisión sea más manejable; y planificar mejor los tiempos. También me quedo con la práctica de verificar las métricas en vez de confiar en el primer número: la cobertura inflada de JaCoCo sin clean fue un buen ejemplo.
 
 ## 8. Justificación de la entrega individual
 
-_(completa el autor)_
+El trabajo se realizó de manera individual por motivos de disponibilidad horaria y compromisos laborales, que dificultaban coordinar encuentros y plazos con un equipo. Para compensar la ausencia de pares revisores, el code review se realizó sobre un Pull Request en GitHub con un checklist técnico y revisión asistida por IA. Las decisiones de aceptar, diferir o rechazar cada observación fueron tomadas por el autor y quedaron justificadas en el PR.
