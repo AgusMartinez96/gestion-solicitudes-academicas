@@ -60,7 +60,7 @@
   5. No se tocó ningún texto de error, código HTTP ni orden de evaluación.
 - **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`.
 - **Fuera de alcance de R01 (se resuelve en otros refactorings):** los `String` de estado/tipo/prioridad (R02), `puedeCambiar` y las reglas en la entidad (R03), `armarSolicitud` de 7 parámetros (R05), `catch (Exception)` (R07), `Utils`/`NotificadorConsola`/`now()` (R08), `System.out`, nombres cortos y el bloque comentado (R09).
-- **Commit:** _(se completa al terminar la tanda)_
+- **Commit:** `9232424`
 
 ---
 
@@ -112,7 +112,7 @@
   4. Ejecutar los tests y revisar el DDL generado (paso que detectó el `enum` nativo).
 - **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`.
 - **Fuera de alcance de R02:** `Utils.calcularDias` y la prioridad por defecto siguen como decisiones sobre el tipo (R04); `Utils.validar` todavía recibe `String` (se elimina en R08); el enum todavía no tiene comportamiento (R03 y R04).
-- **Commit:** _(se completa al terminar la tanda)_
+- **Commit:** `fb7220c`
 
 ---
 
@@ -170,4 +170,4 @@
   3. Borrar `puedeCambiar` y `estaCerrada` del controller cuando ya no tenían llamadas.
   4. Conservar el orden de chequeos y los mensajes de error.
 - **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`.
-- **Commit:** _(se completa al terminar la tanda)_
+- **Commit:** `43c190e`
