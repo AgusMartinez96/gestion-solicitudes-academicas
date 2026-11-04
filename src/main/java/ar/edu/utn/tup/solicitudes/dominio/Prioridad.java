@@ -1,0 +1,29 @@
+package ar.edu.utn.tup.solicitudes.dominio;
+
+import ar.edu.utn.tup.solicitudes.dominio.excepciones.DatoInvalidoException;
+
+public enum Prioridad {
+
+    BAJA,
+    MEDIA,
+    ALTA;
+
+    private static final int DIVISOR_PLAZO_ALTA = 2;
+    private static final int PLAZO_MINIMO_DIAS = 1;
+
+    public int ajustarPlazo(int dias) {
+        if (this == ALTA) {
+            return Math.max(PLAZO_MINIMO_DIAS, dias / DIVISOR_PLAZO_ALTA);
+        }
+        return dias;
+    }
+
+    public static Prioridad parsear(String valor) {
+        for (Prioridad prioridad : values()) {
+            if (prioridad.name().equals(valor)) {
+                return prioridad;
+            }
+        }
+        throw new DatoInvalidoException("Prioridad inválida: " + valor);
+    }
+}

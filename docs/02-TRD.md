@@ -8,7 +8,7 @@
 | Framework | **Spring Boot 4.1.x** (el proyecto se generó con 4.1.2 en start.spring.io) | Estándar del mercado y del CV del autor. |
 | Build | **Maven con wrapper** (`mvnw.cmd`) | No requiere instalar Maven. |
 | Persistencia | **Spring Data JPA + H2 en memoria** | Cero instalación; la consigna admite "base de datos o memoria estructurada". |
-| Validación | Validación **manual** en v1; **Jakarta Bean Validation** (`spring-boot-starter-validation`) en v2 | La migración de validación manual a declarativa es parte del refactoring. |
+| Validación | Validación **manual** en v1 y en v2, centralizada en `NuevaSolicitud` y en los métodos `parsear` de los enums (sin `spring-boot-starter-validation`) | Bean Validation acumula errores y no garantiza el orden ni los mensajes exactos del contrato HTTP, que forman parte de los tests de caracterización. Ver [ADR-005](tpi/decisiones/ADR-005-validacion-manual.md). |
 | Documentación API | **springdoc-openapi-starter-webmvc-ui 3.2.0** (la línea 3.x es la compatible con Spring Boot 4; la 2.x es para Boot 3 y NO funciona; la 3.2.0 está construida sobre Boot 4.1.2) | Swagger UI para la demo y el video. |
 | Tests | **JUnit 5 + MockMvc + AssertJ** (incluidos en `spring-boot-starter-test`) | Tests de caracterización a nivel HTTP + unitarios de dominio. |
 | Cobertura | **JaCoCo** (`jacoco-maven-plugin` 0.8.16) | Evidencia de cobertura antes/después. |
@@ -23,7 +23,7 @@ Spring Boot 4 tiene cambios que rompen código escrito "de memoria" para Boot 3.
 - `@AutoConfigureMockMvc` cambió de paquete en Boot 4 (ahora está en el módulo de test de webmvc). Usar el import que corresponda a la versión del pom.
 - La **consola H2** en Boot 4 es un módulo aparte (`spring-boot-h2console`); si `spring.h2.console.enabled=true` no la levanta, agregar esa dependencia. Es opcional: si da problemas, se puede omitir.
 - **Jackson 3** (paquetes `tools.jackson.*` en lugar de `com.fasterxml.jackson.databind.*`; las anotaciones `com.fasterxml.jackson.annotation.*` se mantienen). Las fechas `LocalDateTime` se serializan en ISO-8601 por defecto.
-- Jakarta EE 11 / Hibernate 7: los imports siguen siendo `jakarta.persistence.*` y `jakarta.validation.*`.
+- Jakarta EE 11 / Hibernate 7: los imports siguen siendo `jakarta.persistence.*` (la v2 no usa `jakarta.validation.*`, ver ADR-005).
 
 ## 2. Coordenadas del proyecto
 
@@ -102,7 +102,7 @@ gestion-solicitudes-academicas/
     │   ├── 06-pruebas-verificacion.md
     │   ├── 07-code-review-checklist.md
     │   ├── 08-conclusiones.md
-    │   └── decisiones/ADR-001..md
+    │   └── decisiones/ADR-001..005
     ├── pruebas/casos-de-prueba.md
     ├── evidencias/
     │   ├── antes/   (reportes surefire/jacoco/pmd y capturas de v1)
