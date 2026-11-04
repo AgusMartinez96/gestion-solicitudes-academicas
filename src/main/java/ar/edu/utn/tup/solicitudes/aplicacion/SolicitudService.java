@@ -1,5 +1,6 @@
 package ar.edu.utn.tup.solicitudes.aplicacion;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -19,8 +20,6 @@ import ar.edu.utn.tup.solicitudes.dominio.excepciones.ReglaDeNegocioException;
 import ar.edu.utn.tup.solicitudes.persistencia.EstudianteRepository;
 import ar.edu.utn.tup.solicitudes.persistencia.ResponsableRepository;
 import ar.edu.utn.tup.solicitudes.persistencia.SolicitudRepository;
-import ar.edu.utn.tup.solicitudes.util.NotificadorConsola;
-import ar.edu.utn.tup.solicitudes.util.Utils;
 
 @Service
 @Transactional
@@ -29,12 +28,16 @@ public class SolicitudService {
     private final SolicitudRepository solicitudRepository;
     private final EstudianteRepository estudianteRepository;
     private final ResponsableRepository responsableRepository;
+    private final Notificador notificador;
+    private final Clock clock;
 
     public SolicitudService(SolicitudRepository solicitudRepository, EstudianteRepository estudianteRepository,
-            ResponsableRepository responsableRepository) {
+            ResponsableRepository responsableRepository, Notificador notificador, Clock clock) {
         this.solicitudRepository = solicitudRepository;
         this.estudianteRepository = estudianteRepository;
         this.responsableRepository = responsableRepository;
+        this.notificador = notificador;
+        this.clock = clock;
     }
 
     public Solicitud registrar(NuevaSolicitud nueva) {
@@ -74,8 +77,7 @@ public class SolicitudService {
         s.cambiarEstado(nuevo, ahoraTruncado());
         s = solicitudRepository.save(s);
         if (s.getEstado().esResolucion()) {
-            new NotificadorConsola().notificar(s.getEstudiante().getEmail(),
-                    "Su solicitud " + s.getId() + " fue " + s.getEstado());
+            notificador.notificarCierre(s);
         }
         return s;
     }
@@ -123,7 +125,7 @@ public class SolicitudService {
     }
 
     private LocalDateTime ahoraTruncado() {
-        return LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        return LocalDateTime.now(clock).truncatedTo(ChronoUnit.SECONDS);
     }
 
     private Solicitud armarSolicitud(NuevaSolicitud nueva, Estudiante est, LocalDateTime creacion) {
@@ -133,7 +135,7 @@ public class SolicitudService {
         s.setPrioridad(nueva.prioridadEfectiva());
         s.setEstado(EstadoSolicitud.PENDIENTE);
         s.setFechaCreacion(creacion);
-        s.setFechaVencimiento(Utils.calcularVencimiento(creacion, nueva.plazoDias()));
+        s.setFechaVencimiento(creacion.plusDays(nueva.plazoDias()));
         s.setEstudiante(est);
         System.out.println("DEBUG solicitud armada para " + nueva.legajo() + " vence en " + nueva.plazoDias() + " dias");
         return s;

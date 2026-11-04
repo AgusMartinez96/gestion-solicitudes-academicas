@@ -1,5 +1,6 @@
 package ar.edu.utn.tup.solicitudes.aplicacion;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.EnumMap;
 import java.util.List;
@@ -18,9 +19,11 @@ import ar.edu.utn.tup.solicitudes.persistencia.SolicitudRepository;
 public class ReporteService {
 
     private final SolicitudRepository solicitudRepository;
+    private final Clock clock;
 
-    public ReporteService(SolicitudRepository solicitudRepository) {
+    public ReporteService(SolicitudRepository solicitudRepository, Clock clock) {
         this.solicitudRepository = solicitudRepository;
+        this.clock = clock;
     }
 
     public ReporteResumen resumen() {
@@ -53,7 +56,7 @@ public class ReporteService {
 
     private int contarVencidas(List<Solicitud> todas) {
         int vencidas = 0;
-        LocalDateTime ahora = LocalDateTime.now();
+        LocalDateTime ahora = LocalDateTime.now(clock);
         for (Solicitud s : todas) {
             if (s.estaVencida(ahora)) {
                 vencidas++;

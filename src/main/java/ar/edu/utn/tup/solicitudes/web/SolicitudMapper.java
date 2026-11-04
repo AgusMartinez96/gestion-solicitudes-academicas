@@ -1,5 +1,6 @@
 package ar.edu.utn.tup.solicitudes.web;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -24,6 +25,12 @@ import ar.edu.utn.tup.solicitudes.web.dto.SolicitudResponse;
 
 @Component
 public class SolicitudMapper {
+
+    private final Clock clock;
+
+    public SolicitudMapper(Clock clock) {
+        this.clock = clock;
+    }
 
     public NuevaSolicitud aNuevaSolicitud(RegistrarSolicitudRequest request) {
         validarDescripcion(request.descripcion());
@@ -57,7 +64,7 @@ public class SolicitudMapper {
                 solicitud.getFechaCreacion(),
                 solicitud.getFechaVencimiento(),
                 solicitud.getFechaActualizacion(),
-                solicitud.estaVencida(LocalDateTime.now()),
+                solicitud.estaVencida(LocalDateTime.now(clock)),
                 aResumen(solicitud.getEstudiante()),
                 aResumen(solicitud.getResponsable()));
     }

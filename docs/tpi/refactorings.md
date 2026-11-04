@@ -449,3 +449,27 @@
 - **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`.
 - **Fuera de alcance de R07:** `timestamp` usa `LocalDateTime.now()` hasta R08 (Clock); `Solicitud.asignarResponsable` no valida cerrada/inactivo: esas reglas siguen en el servicio porque el contrato exige el orden 409 (cerrada) → 404 (responsable) → 409 (inactivo), que intercala una búsqueda entre dos reglas.
 - **Commit:** _(se completa al terminar la tanda)_
+
+---
+
+## R08 — Introduce Interface + Dependency Injection
+
+- **Smell(s):** S11 (acoplamiento fuerte / violación de DIP) · **Principio:** **DIP** (depender de abstracciones inyectadas, no de clases concretas ni de estáticos) y testabilidad.
+- **Motivación:** el controller instanciaba `new NotificadorConsola()`, leía la hora con `LocalDateTime.now()` en 9 lugares, llamaba a `Utils` estático y recibía sus repositorios con `@Autowired` en campos. No se podía probar el cierre de una solicitud sin escribir en la consola, ni fijar la hora para probar un vencimiento.
+- **Antes (`estado-inicial` y commits previos):**
+  - `SC:251-254` — `new NotificadorConsola().notificar(...)`, que hacía `System.out.println` (`NotificadorConsola.java:6`).
+  - `SC:75, 105, 142, 206, 249, 266, 310, 324, 377` — `LocalDateTime.now()` suelto; tras R06, en `SolicitudService.ahoraTruncado()`, `ReporteService.contarVencidas`, `SolicitudMapper.aResponse` y `ManejadorGlobalErrores.responder`.
+  - `util/Utils.java` — clase de métodos estáticos (tras R04 solo conservaba `calcularVencimiento`).
+- **Después:**
+  - `aplicacion/Notificador.java` — interfaz con un único método `notificarCierre(Solicitud)` (ISP/DIP).
+  - `aplicacion/NotificadorLog.java` — implementación `@Component` que escribe con SLF4J (`LOG.info("Notificación a {}: su solicitud {} fue {}", ...)`), en lugar de `System.out`.
+  - `config/ClockConfig.java` — `@Bean Clock clock()` con `Clock.systemDefaultZone()`.
+  - `SolicitudService` recibe `Notificador` y `Clock` por constructor, y usa `notificador.notificarCierre(s)` y `LocalDateTime.now(clock)`; `ReporteService`, `SolicitudMapper` y `ManejadorGlobalErrores` reciben el `Clock` por constructor. El `timestamp` de error ahora se trunca a segundos, como el resto de las fechas del sistema.
+  - El vencimiento se calcula con `creacion.plusDays(nueva.plazoDias())`, así que `Utils` ya no tiene usos.
+  - **Eliminados:** `util/Utils.java`, `util/NotificadorConsola.java` y el paquete `util/`.
+  - Inyección **por constructor en todas las clases** (`SolicitudController`, `ReporteController`, `SoporteController`, los dos services, el mapper y el advice). Un `grep` en `src/main` de `@Autowired`, `Utils`, `NotificadorConsola`, `solicitudes.util` y `LocalDateTime.now()` (sin `clock`) → **0 coincidencias**.
+- **Beneficio de DIP (se aprovecha en la Fase 6):** `SolicitudService` puede probarse con `Clock.fixed(...)` y un `NotificadorFake` sin consola ni hora real. Por eso se corrigió la dependencia aunque hoy el comportamiento externo sea el mismo.
+- **Comparación con la v1 en la consola:** `docs/evidencias/antes/capturas/05-notificacion-consola.png` muestra la línea escrita por `System.out`; ahora aparece en el log con nivel, nombre de logger y formato estándar (`INFO ... NotificadorLog : Notificación a martina.sosa@alumnos.example: su solicitud 5 fue RESUELTA`), y puede silenciarse o redirigirse por configuración.
+- **Pasos seguros aplicados:** (1) crear `Notificador`, `NotificadorLog` y `ClockConfig` sin usarlos; (2) inyectar `Clock` en una clase por vez y reemplazar `now()`; (3) reemplazar `new NotificadorConsola()` por la interfaz inyectada; (4) reemplazar el último uso de `Utils`; (5) borrar `util/` recién cuando el compilador no marcaba referencias; (6) tests y batería HTTP.
+- **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`. Las 25 llamadas HTTP (con la app levantada) son idénticas a las de R07; la notificación aparece una vez en el log al resolver la solicitud 5.
+- **Commit:** _(se completa al terminar la tanda)_

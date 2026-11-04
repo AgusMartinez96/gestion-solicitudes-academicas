@@ -1,6 +1,8 @@
 package ar.edu.utn.tup.solicitudes.web;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +28,12 @@ public class ManejadorGlobalErrores extends ResponseEntityExceptionHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ManejadorGlobalErrores.class);
     private static final MediaType JSON_UTF8 = MediaType.parseMediaType("application/json;charset=UTF-8");
     private static final String MENSAJE_ERROR_INTERNO = "Error interno del servidor";
+
+    private final Clock clock;
+
+    public ManejadorGlobalErrores(Clock clock) {
+        this.clock = clock;
+    }
 
     @ExceptionHandler(DatoInvalidoException.class)
     public ResponseEntity<Object> manejarDatoInvalido(DatoInvalidoException excepcion) {
@@ -67,7 +75,7 @@ public class ManejadorGlobalErrores extends ResponseEntityExceptionHandler {
 
     private ResponseEntity<Object> responder(HttpStatus status, String mensaje) {
         ErrorResponse cuerpo = new ErrorResponse(status.value(), status.getReasonPhrase(), mensaje,
-                LocalDateTime.now());
+                LocalDateTime.now(clock).truncatedTo(ChronoUnit.SECONDS));
         return ResponseEntity.status(status).contentType(JSON_UTF8).body(cuerpo);
     }
 }
