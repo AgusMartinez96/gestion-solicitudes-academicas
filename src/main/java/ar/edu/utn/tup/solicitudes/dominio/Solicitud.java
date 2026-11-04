@@ -59,7 +59,19 @@ public class Solicitud {
     @JoinColumn(name = "responsable_id")
     private Responsable responsable;
 
-    public Solicitud() {
+    protected Solicitud() {
+    }
+
+    public static Solicitud registrar(NuevaSolicitud nueva, Estudiante estudiante, LocalDateTime creacion) {
+        Solicitud solicitud = new Solicitud();
+        solicitud.tipo = nueva.tipo();
+        solicitud.descripcion = nueva.descripcion();
+        solicitud.prioridad = nueva.prioridadEfectiva();
+        solicitud.estado = EstadoSolicitud.PENDIENTE;
+        solicitud.fechaCreacion = creacion;
+        solicitud.fechaVencimiento = creacion.plusDays(nueva.plazoDias());
+        solicitud.estudiante = estudiante;
+        return solicitud;
     }
 
     public boolean estaCerrada() {
@@ -107,79 +119,39 @@ public class Solicitud {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public TipoSolicitud getTipo() {
         return tipo;
-    }
-
-    public void setTipo(TipoSolicitud tipo) {
-        this.tipo = tipo;
     }
 
     public String getDescripcion() {
         return descripcion;
     }
 
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
-
     public Prioridad getPrioridad() {
         return prioridad;
-    }
-
-    public void setPrioridad(Prioridad prioridad) {
-        this.prioridad = prioridad;
     }
 
     public EstadoSolicitud getEstado() {
         return estado;
     }
 
-    public void setEstado(EstadoSolicitud estado) {
-        this.estado = estado;
-    }
-
     public LocalDateTime getFechaCreacion() {
         return fechaCreacion;
-    }
-
-    public void setFechaCreacion(LocalDateTime fechaCreacion) {
-        this.fechaCreacion = fechaCreacion;
     }
 
     public LocalDateTime getFechaVencimiento() {
         return fechaVencimiento;
     }
 
-    public void setFechaVencimiento(LocalDateTime fechaVencimiento) {
-        this.fechaVencimiento = fechaVencimiento;
-    }
-
     public LocalDateTime getFechaActualizacion() {
         return fechaActualizacion;
-    }
-
-    public void setFechaActualizacion(LocalDateTime fechaActualizacion) {
-        this.fechaActualizacion = fechaActualizacion;
     }
 
     public Estudiante getEstudiante() {
         return estudiante;
     }
 
-    public void setEstudiante(Estudiante estudiante) {
-        this.estudiante = estudiante;
-    }
-
     public Responsable getResponsable() {
         return responsable;
-    }
-
-    public void setResponsable(Responsable responsable) {
-        this.responsable = responsable;
     }
 }

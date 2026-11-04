@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ar.edu.utn.tup.solicitudes.dominio.EstadoSolicitud;
 import ar.edu.utn.tup.solicitudes.dominio.Estudiante;
+import ar.edu.utn.tup.solicitudes.dominio.NuevaSolicitud;
 import ar.edu.utn.tup.solicitudes.dominio.Responsable;
 import ar.edu.utn.tup.solicitudes.dominio.Solicitud;
 import ar.edu.utn.tup.solicitudes.dominio.excepciones.RecursoNoEncontradoException;
@@ -39,9 +40,9 @@ public class SolicitudService {
     }
 
     public SolicitudDetalle registrar(PedidoRegistro pedido) {
-        NuevaSolicitud nueva = NuevaSolicitud.desde(pedido);
+        NuevaSolicitud nueva = pedido.validar();
         Estudiante estudiante = buscarEstudiante(nueva.legajo());
-        Solicitud solicitud = armarSolicitud(nueva, estudiante, ahoraTruncado());
+        Solicitud solicitud = Solicitud.registrar(nueva, estudiante, ahoraTruncado());
         return aDetalle(solicitudRepository.save(solicitud));
     }
 
@@ -110,17 +111,5 @@ public class SolicitudService {
 
     private LocalDateTime ahoraTruncado() {
         return LocalDateTime.now(clock).truncatedTo(ChronoUnit.SECONDS);
-    }
-
-    private Solicitud armarSolicitud(NuevaSolicitud nueva, Estudiante estudiante, LocalDateTime creacion) {
-        Solicitud solicitud = new Solicitud();
-        solicitud.setTipo(nueva.tipo());
-        solicitud.setDescripcion(nueva.descripcion());
-        solicitud.setPrioridad(nueva.prioridadEfectiva());
-        solicitud.setEstado(EstadoSolicitud.PENDIENTE);
-        solicitud.setFechaCreacion(creacion);
-        solicitud.setFechaVencimiento(creacion.plusDays(nueva.plazoDias()));
-        solicitud.setEstudiante(estudiante);
-        return solicitud;
     }
 }
