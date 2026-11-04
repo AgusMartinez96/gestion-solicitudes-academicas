@@ -33,24 +33,24 @@ Cada refactoring está documentado con fragmento *antes*, fragmento *después*, 
 
 ## Estructura resultante
 
-`dominio/` (entidades, enums con comportamiento y `excepciones/`) · `aplicacion/` (`SolicitudService`, `ReporteService`, `NuevaSolicitud`, `FiltroSolicitudes`, `Notificador`/`NotificadorLog`) · `persistencia/` (repositorios) · `web/` (controllers, `SolicitudMapper`, `ManejadorGlobalErrores`, `dto/`) · `config/` (`ClockConfig`). El paquete `util/` desapareció.
+`dominio/` (entidades, enums con comportamiento, `NuevaSolicitud` y `excepciones/`) · `aplicacion/` (`SolicitudService`, `ReporteService`, `ConsultaService`, `PedidoRegistro`, `SolicitudDetalle`, `FiltroSolicitudes`, `Notificador`/`NotificadorLog`) · `persistencia/` (repositorios) · `web/` (controllers, `SolicitudMapper`, `ManejadorGlobalErrores`, `dto/`) · `config/` (`ClockConfig`). El paquete `util/` desapareció.
 
 ## Métricas antes / después
 
 | Métrica | v1 (`estado-inicial`) | v2 (esta rama) |
 |---|---|---|
-| Violaciones PMD (ruleset del TRD §4) | **56** | **10** (todas `ShortVariable` sobre `id`, justificadas en R09) |
-| Líneas de `SolicitudController` | **433** | **70** |
-| Método más largo | 77 líneas (`crear`) | 14 líneas |
+| Violaciones PMD (ruleset del TRD §4) | **56** | **9** (todas `ShortVariable` sobre `id`, justificadas en R09) |
+| Líneas de `SolicitudController` | **433** | **100** (70 líneas de código + 30 de anotaciones `@ApiResponse` que documentan los errores en OpenAPI, O-10) |
+| Método más largo | 77 líneas (`crear`) | 15 líneas (firma y llaves incluidas) |
 | `catch (Exception)` en producción | 6 | 0 |
 | Literales de estado escritos a mano | 49 | 0 |
-| Cobertura JaCoCo (instrucciones / ramas) | 82 % / 60 % | **86 % / 74 %** |
+| Cobertura JaCoCo (instrucciones / ramas) | 82 % / 60 % | **86 % / 75 %** |
 | Tests de caracterización CP-01..CP-15 | 15/15 en verde | **15/15 en verde, sin modificar** (`git diff estado-inicial -- src/test` vacío) |
 | Tests totales | 16 | 16 |
-| Tipos de producción | 11 | 36 |
-| Líneas de código de producción | 828 | 1154 |
+| Tipos de producción | 11 | 39 |
+| Líneas de código de producción | 828 | 1207 |
 
-Los dos últimos renglones muestran el costo del diseño en capas: hay más clases y más líneas en total, pero cada una tiene una única responsabilidad y es chica: la más larga es la entidad `Solicitud` (175 líneas, en su mayoría getters y setters), seguida de `SolicitudService` (127 líneas) y de `SolicitudMapper` (112); ningún método supera las 14 líneas. No se afirma que "menos código" sea el objetivo del trabajo.
+Los dos últimos renglones muestran el costo del diseño en capas: hay más clases y más líneas en total, pero cada una tiene una única responsabilidad y es chica: la más larga es la entidad `Solicitud` (157 líneas, en su mayoría getters), seguida de `SolicitudService` (118) y de `ManejadorGlobalErrores` (104); ningún método supera las 15 líneas. No se afirma que "menos código" sea el objetivo del trabajo.
 
 Evidencias: `docs/evidencias/antes/` y `docs/evidencias/despues/` (capturas de Swagger, de los tests intactos, del error en JSON y del esquema tipado).
 
@@ -63,7 +63,7 @@ El **cuerpo de las respuestas de error** pasa de texto plano a JSON. El código 
 | `Content-Type` | `text/plain;charset=UTF-8` | `application/json;charset=UTF-8` |
 | Cuerpo (409) | `Error: Transición inválida: CANCELADA -> EN_ANALISIS` | `{"status":409,"error":"Conflict","mensaje":"Transición inválida: CANCELADA -> EN_ANALISIS","timestamp":"2026-11-04T10:29:24"}` |
 
-Los tests de caracterización verifican el código HTTP y que el cuerpo **contenga** el mensaje, por lo que pasan en ambas versiones. Los errores de framework (JSON malformado, id no numérico, ruta inexistente) conservan su código 400/404 y usan el mismo formato; los errores inesperados responden 500 con un mensaje genérico, sin detalles internos. Detalle y capturas en la ficha de R07.
+Los tests de caracterización verifican el código HTTP y que el cuerpo **contenga** el mensaje, por lo que pasan en ambas versiones. Los errores de framework (JSON malformado, id no numérico, ruta inexistente) conservan su código 400/404, usan el mismo formato y ahora tienen mensaje en español (O-9); los errores inesperados responden 500 con un mensaje genérico, sin detalles internos. Detalle y capturas en la ficha de R07.
 
 ## Cómo se verificó
 
@@ -73,7 +73,11 @@ Los tests de caracterización verifican el código HTTP y que el cuerpo **conten
 
 ## Code review
 
-La revisión con checklist está en [`docs/tpi/07-code-review-checklist.md`](07-code-review-checklist.md): 14 observaciones (0 bloqueantes, 3 mayores, 8 menores, 3 sugerencias), producidas con asistencia de IA y sujetas a la decisión del autor de aceptarlas o rechazarlas. Las aceptadas se corrigen en commits `fix(review): ...` dentro de este mismo PR.
+La revisión con checklist está en [`docs/tpi/07-code-review-checklist.md`](07-code-review-checklist.md): 14 observaciones (0 bloqueantes, 3 mayores, 8 menores, 3 sugerencias), producidas con asistencia de IA y decididas por el autor:
+
+- **Aceptadas y corregidas (11)**, una por commit `fix(review): O-x ...` dentro de este PR: O-1, O-2, O-3 (mayores, ver [ADR-005](decisiones/ADR-005-validacion-manual.md)), O-4, O-5, O-6, O-7, O-8, O-9, O-10 y O-14. Tras cada una: 16/16 tests y batería HTTP (35 llamadas) sin diferencias, salvo el texto de 3 mensajes de error de framework (O-9).
+- **Diferida (1):** O-11, se implementa en la Fase 6 (tests fuera de `api/`).
+- **Rechazadas (2):** O-12 (los 4 query params son el contrato HTTP; el filtro interno ya es un Parameter Object) y O-13 (cambiaría el comportamiento externo heredado de la v1). Justificación en la sección 3 del checklist.
 
 ## Para quien revisa
 

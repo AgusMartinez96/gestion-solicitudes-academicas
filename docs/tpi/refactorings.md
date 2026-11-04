@@ -505,3 +505,9 @@
 - **Pasos seguros aplicados:** (1) reemplazar cada nombre y cada número de a uno y compilar; (2) borrar el código comentado y los `println` al final, cuando ya no eran necesarios para ninguna verificación; (3) tests y batería HTTP.
 - **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`; las 25 llamadas HTTP son idénticas a las de R08; PMD pasó de 25 a **10** violaciones en este refactoring.
 - **Commit:** `bd1b115`
+
+---
+
+## Correcciones posteriores del code review
+
+Las fichas R01–R09 describen el estado de cada commit en su momento. Después, el code review (PR `refactor/solicitudes` → `main`) produjo correcciones `fix(review): O-x ...` que ajustaron algunos detalles: por ejemplo, `NuevaSolicitud` pasó de `aplicacion/` a `dominio/`, `asignarResponsable` valida en la entidad, `Solicitud` ya no expone setters y `SolicitudService` devuelve `SolicitudDetalle`. El detalle y los hashes están en [`07-code-review-checklist.md`](07-code-review-checklist.md) (sección 3).

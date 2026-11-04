@@ -1,10 +1,10 @@
 # 07 — Code review: checklist y observaciones
 
 - **Pull Request:** `refactor/solicitudes` → `main` ("Refactoring v2: SOLID, Clean Code y manejo de errores"). Descripción en [`pr-descripcion.md`](pr-descripcion.md); detalle de cada refactoring en [`refactorings.md`](refactorings.md).
-- **Alcance de la revisión:** `git diff main...refactor/solicitudes` (16 commits; 40 archivos de producción cambiados, `src/test/` sin cambios respecto de `estado-inicial`).
+- **Alcance de la revisión:** `git diff main...refactor/solicitudes` al momento de la revisión (commit `4aba570`; 16 commits; 40 archivos de producción cambiados, `src/test/` sin cambios respecto de `estado-inicial`).
 - **Cómo se hizo:** se aplicó el checklist de la tabla de abajo sobre el código de la rama, con mediciones reproducibles (PMD, JaCoCo, conteo de longitud de métodos, `grep` de patrones prohibidos, batería HTTP de 25 llamadas) y lectura de cada clase de producción.
 
-> **Aclaración sobre el origen de esta revisión.** Las observaciones fueron producidas por una **revisión asistida por IA** (Claude Code) y deben ser **validadas por el autor**. La decisión de **aceptar o rechazar** cada observación es del autor; las rechazadas se justifican en la sección 3. Ninguna observación fue corregida todavía.
+> **Aclaración sobre el origen de esta revisión.** Las observaciones fueron producidas por una **revisión asistida por IA** (Claude Code) y deben ser **validadas por el autor**. La decisión de **aceptar o rechazar** cada observación es del autor; las rechazadas se justifican en la sección 3. Las observaciones aceptadas se corrigieron en commits `fix(review): ...` dentro del mismo PR (sección 3); las rechazadas y la diferida se justifican en la sección 3.
 
 ---
 
@@ -16,71 +16,71 @@ La columna **Resultado** se completa después de resolver las observaciones (✅
 
 | # | Criterio | Cómo se verifica | Resultado | Observación | Acción |
 |---|---|---|---|---|---|
-| A1 | Rutas, métodos, JSON y códigos HTTP iguales a la v1 | Batería HTTP de 25 llamadas capturada antes y después de los refactorings con `diff` (`docs/tpi/refactorings.md`, R05-B, R07 y R08) y tests CP-01..CP-15 | | O-10 (la documentación OpenAPI no refleja el formato real de fechas) | |
-| A2 | Tests de caracterización intactos y en verde | `git diff estado-inicial -- src/test` vacío; `.\mvnw.cmd test` → 16 tests; captura `docs/evidencias/despues/capturas/02-tests-intactos.png` | | | |
-| A3 | El único cambio externo es el formato del cuerpo de error, documentado | Ficha de R07 con ejemplo antes/después y capturas `antes/03-error-409.png` y `despues/03-error-409-json.png` | | O-9 (mensajes de errores de framework en inglés) | |
+| A1 | Rutas, métodos, JSON y códigos HTTP iguales a la v1 | Batería HTTP de 25 llamadas capturada antes y después de los refactorings con `diff` (`docs/tpi/refactorings.md`, R05-B, R07 y R08) y tests CP-01..CP-15 | ✅ | O-10 (la documentación OpenAPI no refleja el formato real de fechas) | O-10 resuelta (`d4f805e`); batería HTTP idéntica tras cada corrección |
+| A2 | Tests de caracterización intactos y en verde | `git diff estado-inicial -- src/test` vacío; `.\mvnw.cmd test` → 16 tests; captura `docs/evidencias/despues/capturas/02-tests-intactos.png` | ✅ | | `git diff estado-inicial -- src/test` vacío; 16/16 tras cada corrección |
+| A3 | El único cambio externo es el formato del cuerpo de error, documentado | Ficha de R07 con ejemplo antes/después y capturas `antes/03-error-409.png` y `despues/03-error-409-json.png` | ✅ | O-9 (mensajes de errores de framework en inglés) | O-9 resuelta (`c2aebc4`): solo cambia el texto de 3 errores de framework, no su código HTTP |
 
 ### B. Diseño / SOLID
 
 | # | Criterio | Cómo se verifica | Resultado | Observación | Acción |
 |---|---|---|---|---|---|
-| B1 | Una responsabilidad por clase | Lectura de las clases; `SolicitudController` 433 → 70 líneas; PMD sin `GodClass` ni `CyclomaticComplexity` | | O-6 (la entidad conserva setters públicos) | |
-| B2 | Controllers sin lógica de negocio | Lectura de `web/` | | O-4 (`SoporteController` accede a repositorios), O-12 (`listar` arma el filtro) | |
-| B3 | Reglas de negocio en el dominio | Lectura de `dominio/` y `aplicacion/` | | **O-1** (asimetría `cambiarEstado` / `asignarResponsable`), **O-2** (RN-02 validada en el mapper web), O-5 (`vencida` calculada en el mapper) | |
-| B4 | Dependencias por constructor e interfaces | `grep` de `@Autowired` (0); `Notificador` como interfaz; `Clock` inyectado | | | |
-| B5 | Sin `new` de colaboradores | `grep` de `new` sobre servicios y controllers | | | |
+| B1 | Una responsabilidad por clase | Lectura de las clases; `SolicitudController` 433 → 70 líneas; PMD sin `GodClass` ni `CyclomaticComplexity` | ✅ | O-6 (la entidad conserva setters públicos) | O-6 resuelta (`da59dbf`) |
+| B2 | Controllers sin lógica de negocio | Lectura de `web/` | ✅ | O-4 (`SoporteController` accede a repositorios), O-12 (`listar` arma el filtro) | O-4 resuelta (`326eed0`); O-12 rechazada (ver sección 3) |
+| B3 | Reglas de negocio en el dominio | Lectura de `dominio/` y `aplicacion/` | ✅ | **O-1** (asimetría `cambiarEstado` / `asignarResponsable`), **O-2** (RN-02 validada en el mapper web), O-5 (`vencida` calculada en el mapper) | O-1 (`6abbe72`), O-2 (`1dc11fc`) y O-5 (`d6e16c8`) resueltas |
+| B4 | Dependencias por constructor e interfaces | `grep` de `@Autowired` (0); `Notificador` como interfaz; `Clock` inyectado | ✅ | | |
+| B5 | Sin `new` de colaboradores | `grep` de `new` sobre servicios y controllers | ✅ | | |
 
 ### C. Clean Code
 
 | # | Criterio | Cómo se verifica | Resultado | Observación | Acción |
 |---|---|---|---|---|---|
-| C1 | Nombres que revelan la intención | PMD `ShortVariable`: 10 violaciones, todas `id` (JPA y contrato JSON) | | | |
-| C2 | Métodos de 20 líneas como máximo | Conteo sobre 98 métodos de `src/main`: máximo 14 líneas | | | |
-| C3 | Hasta 3 parámetros por método | Conteo de parámetros; PMD `ExcessiveParameterList` = 0 | | O-12 (`listar` recibe 4 `@RequestParam`) | |
-| C4 | Sin números ni strings mágicos | Constantes `LONGITUD_*`, `DIVISOR_PLAZO_ALTA`, `PLAZO_MINIMO_DIAS`; `AvoidLiteralsInIfCondition` = 0 | | | |
-| C5 | Sin código muerto ni comentarios redundantes | `grep` de `System.out` (0) y de bloques comentados (0); dependencia sin uso | | O-3 (`spring-boot-starter-validation` sin uso) | |
+| C1 | Nombres que revelan la intención | PMD `ShortVariable`: 10 violaciones, todas `id` (JPA y contrato JSON) | ✅ | | |
+| C2 | Métodos de 20 líneas como máximo | Conteo sobre 98 métodos de `src/main`: máximo 14 líneas | ✅ | | Máximo 15 líneas contando firma y llaves (antes 14; `aResponse` del mapper) |
+| C3 | Hasta 3 parámetros por método | Conteo de parámetros; PMD `ExcessiveParameterList` = 0 | ⚠️ | O-12 (`listar` recibe 4 `@RequestParam`) | O-12 rechazada: los 4 `@RequestParam` son el contrato HTTP; el criterio rige para métodos de dominio y aplicación, que cumplen |
+| C4 | Sin números ni strings mágicos | Constantes `LONGITUD_*`, `DIVISOR_PLAZO_ALTA`, `PLAZO_MINIMO_DIAS`; `AvoidLiteralsInIfCondition` = 0 | ✅ | | |
+| C5 | Sin código muerto ni comentarios redundantes | `grep` de `System.out` (0) y de bloques comentados (0); dependencia sin uso | ✅ | O-3 (`spring-boot-starter-validation` sin uso) | O-3 resuelta (`792183e`) con ADR-005 |
 
 ### D. Manejo de errores
 
 | # | Criterio | Cómo se verifica | Resultado | Observación | Acción |
 |---|---|---|---|---|---|
-| D1 | Excepciones específicas | `dominio/excepciones/` (3 clases) | | | |
-| D2 | Sin `catch (Exception)` | `grep` (0); PMD `AvoidCatchingGenericException` = 0 | | | |
-| D3 | Un solo `@RestControllerAdvice` | `web/ManejadorGlobalErrores` | | | |
-| D4 | Mensajes claros y consistentes | Contraste de los mensajes del contrato con los de errores de framework | | O-9 | |
+| D1 | Excepciones específicas | `dominio/excepciones/` (3 clases) | ✅ | | |
+| D2 | Sin `catch (Exception)` | `grep` (0); PMD `AvoidCatchingGenericException` = 0 | ✅ | | |
+| D3 | Un solo `@RestControllerAdvice` | `web/ManejadorGlobalErrores` | ✅ | | |
+| D4 | Mensajes claros y consistentes | Contraste de los mensajes del contrato con los de errores de framework | ✅ | O-9 | O-9 resuelta (`c2aebc4`) |
 
 ### E. Tests
 
 | # | Criterio | Cómo se verifica | Resultado | Observación | Acción |
 |---|---|---|---|---|---|
-| E1 | Tests unitarios del dominio | `src/test/.../dominio/` (planificado para la Fase 6) | | O-11 | |
-| E2 | Nombres descriptivos | `@DisplayName("CP-xx — ...")` en los tests de caracterización | | | |
-| E3 | Sin dependencia de la hora real | `Clock` inyectado en `src/main`; `grep` de `LocalDateTime.now()` sin reloj (0) | | O-5 | |
+| E1 | Tests unitarios del dominio | `src/test/.../dominio/` (planificado para la Fase 6) | ⚠️ | O-11 | Diferido a la Fase 6 (O-11) |
+| E2 | Nombres descriptivos | `@DisplayName("CP-xx — ...")` en los tests de caracterización | ✅ | | |
+| E3 | Sin dependencia de la hora real | `Clock` inyectado en `src/main`; `grep` de `LocalDateTime.now()` sin reloj (0) | ✅ | O-5 | O-5 resuelta: una sola lectura de reloj por operación |
 
 ### F. Datos y seguridad
 
 | # | Criterio | Cómo se verifica | Resultado | Observación | Acción |
 |---|---|---|---|---|---|
-| F1 | Solo datos sintéticos | `data.sql`: nombres, legajos y emails inventados (`*.example`) | | | |
-| F2 | Sin secretos en el repositorio | Búsqueda de credenciales en `application.properties` y `pom.xml` (usuario `sa` sin contraseña de la H2 en memoria) | | | |
+| F1 | Solo datos sintéticos | `data.sql`: nombres, legajos y emails inventados (`*.example`) | ✅ | | |
+| F2 | Sin secretos en el repositorio | Búsqueda de credenciales en `application.properties` y `pom.xml` (usuario `sa` sin contraseña de la H2 en memoria) | ✅ | | |
 
 ### G. Git y documentación
 
 | # | Criterio | Cómo se verifica | Resultado | Observación | Acción |
 |---|---|---|---|---|---|
-| G1 | Un commit por refactoring | `git log main..refactor/solicitudes`: R01, R02, R03, R04, R05 (A y B), R06 (A y B), R07, R08, R09 | | | |
-| G2 | Mensajes de commit claros | Conventional Commits en español (`refactor(R0x): ...`) | | | |
-| G3 | `refactorings.md` completo y README actualizado | Fichas R01–R09 con antes/después, hash y tests; README (se completa en la Fase 7) | | O-14 (metadatos vacíos del `pom.xml`) | |
+| G1 | Un commit por refactoring | `git log main..refactor/solicitudes`: R01, R02, R03, R04, R05 (A y B), R06 (A y B), R07, R08, R09 | ✅ | | |
+| G2 | Mensajes de commit claros | Conventional Commits en español (`refactor(R0x): ...`) | ✅ | | |
+| G3 | `refactorings.md` completo y README actualizado | Fichas R01–R09 con antes/después, hash y tests; README (se completa en la Fase 7) | ⚠️ | O-14 (metadatos vacíos del `pom.xml`) | O-14 resuelta (`baad12e`); el README se completa en la Fase 7 |
 
 ### Criterios de aceptación del PR
 
 | # | Criterio | Cómo se verifica | Resultado | Observación | Acción |
 |---|---|---|---|---|---|
-| P1 | 15/15 tests de caracterización en verde, sin modificaciones | `.\mvnw.cmd test`; `git diff estado-inicial -- src/test` | | | |
-| P2 | Sin violaciones PMD de `GodClass`, `ExcessiveParameterList` ni `AvoidCatchingGenericException` | `.\mvnw.cmd pmd:pmd` → `target\reports\pmd.html` (0, 0 y 0) | | | |
-| P3 | Ningún método de producción con más de 20 líneas | Conteo sobre `src/main` (máximo 14) | | | |
-| P4 | Observaciones bloqueantes y mayores resueltas | Sección 2: no hay observaciones bloqueantes; hay 3 mayores (O-1, O-2, O-3) | | O-1, O-2, O-3 | |
-| P5 | `refactorings.md` completo con hashes | Fichas R01–R09 con hash de commit | | | |
+| P1 | 15/15 tests de caracterización en verde, sin modificaciones | `.\mvnw.cmd test`; `git diff estado-inicial -- src/test` | ✅ | | 15/15 CP en verde (16/16 con el test de contexto), sin modificar |
+| P2 | Sin violaciones PMD de `GodClass`, `ExcessiveParameterList` ni `AvoidCatchingGenericException` | `.\mvnw.cmd pmd:pmd` → `target\reports\pmd.html` (0, 0 y 0) | ✅ | | PMD: 0 `GodClass`, 0 `ExcessiveParameterList`, 0 `AvoidCatchingGenericException`; 9 violaciones en total |
+| P3 | Ningún método de producción con más de 20 líneas | Conteo sobre `src/main` (máximo 14) | ✅ | | Máximo 15 líneas (firma y llaves incluidas) |
+| P4 | Observaciones bloqueantes y mayores resueltas | Sección 2: no hay observaciones bloqueantes; hay 3 mayores (O-1, O-2, O-3) | ✅ | O-1, O-2, O-3 | Las 3 mayores (O-1, O-2, O-3) están resueltas; no hubo bloqueantes |
+| P5 | `refactorings.md` completo con hashes | Fichas R01–R09 con hash de commit | ✅ | | Fichas R01–R09 con hash |
 
 ---
 
@@ -93,20 +93,20 @@ Las líneas corresponden al commit `4aba570` (cabeza de la rama al momento de la
 
 | ID | Severidad | Ubicación | Tema | Decisión del autor |
 |---|---|---|---|---|
-| O-1 | mayor | `Solicitud.java:89-94`, `SolicitudService.java:75-83` | Asimetría de validación entre `cambiarEstado` y `asignarResponsable` | |
-| O-2 | mayor | `SolicitudMapper.java:38-43, 105-111`; `SolicitudService.java:107-110` | Regla RN-02 en la capa web y parseo de estado duplicado | |
-| O-3 | mayor | `pom.xml:46, 70`; `SolicitudMapper.java:105-111` | `spring-boot-starter-validation` declarado y exigido por el TRD, pero sin uso | |
-| O-4 | menor | `SoporteController.java:16-34` | Controller que salta la capa de aplicación | |
-| O-5 | menor | `SolicitudMapper.java:32-36, 70`; `ReporteService.java:57-65` | `vencida` calculada en la capa web, con una lectura de reloj por solicitud | |
-| O-6 | menor | `Solicitud.java:100-142`; `SolicitudService.java:116-126` | Setters públicos que permiten saltear los invariantes | |
-| O-7 | menor | `SolicitudRepository.java:13-19`; `ReporteService.java:30` | `@EntityGraph` global aplicado también al reporte | |
-| O-8 | menor | `SolicitudService.java:25`; `ReporteService.java:18` | Consultas dentro de transacciones de lectura-escritura | |
-| O-9 | menor | `ManejadorGlobalErrores.java:59-74` | Mensajes de errores de framework en inglés | |
-| O-10 | menor | `SolicitudResponse.java:15-17`; `SolicitudController.java:34-69` | OpenAPI documenta un formato de fecha distinto al real y no documenta los errores | |
-| O-11 | menor | `src/test/` | Sin tests para el manejador de errores ni para el caso de carga diferida | |
-| O-12 | sugerencia | `SolicitudController.java:47-56` | `listar` con 4 parámetros y armado del filtro en el controller | |
-| O-13 | sugerencia | `SolicitudMapper.java:105-111` | Una descripción de solo espacios es válida (comportamiento heredado de la v1) | |
-| O-14 | sugerencia | `pom.xml:14-27` | Metadatos vacíos heredados de Spring Initializr | |
+| O-1 | mayor | `Solicitud.java:89-94`, `SolicitudService.java:75-83` | Asimetría de validación entre `cambiarEstado` y `asignarResponsable` | Aceptada |
+| O-2 | mayor | `SolicitudMapper.java:38-43, 105-111`; `SolicitudService.java:107-110` | Regla RN-02 en la capa web y parseo de estado duplicado | Aceptada |
+| O-3 | mayor | `pom.xml:46, 70`; `SolicitudMapper.java:105-111` | `spring-boot-starter-validation` declarado y exigido por el TRD, pero sin uso | Aceptada (opción a) |
+| O-4 | menor | `SoporteController.java:16-34` | Controller que salta la capa de aplicación | Aceptada |
+| O-5 | menor | `SolicitudMapper.java:32-36, 70`; `ReporteService.java:57-65` | `vencida` calculada en la capa web, con una lectura de reloj por solicitud | Aceptada |
+| O-6 | menor | `Solicitud.java:100-142`; `SolicitudService.java:116-126` | Setters públicos que permiten saltear los invariantes | Aceptada |
+| O-7 | menor | `SolicitudRepository.java:13-19`; `ReporteService.java:30` | `@EntityGraph` global aplicado también al reporte | Aceptada |
+| O-8 | menor | `SolicitudService.java:25`; `ReporteService.java:18` | Consultas dentro de transacciones de lectura-escritura | Aceptada |
+| O-9 | menor | `ManejadorGlobalErrores.java:59-74` | Mensajes de errores de framework en inglés | Aceptada |
+| O-10 | menor | `SolicitudResponse.java:15-17`; `SolicitudController.java:34-69` | OpenAPI documenta un formato de fecha distinto al real y no documenta los errores | Aceptada |
+| O-11 | menor | `src/test/` | Sin tests para el manejador de errores ni para el caso de carga diferida | Diferida a la Fase 6 |
+| O-12 | sugerencia | `SolicitudController.java:47-56` | `listar` con 4 parámetros y armado del filtro en el controller | Rechazada |
+| O-13 | sugerencia | `SolicitudMapper.java:105-111` | Una descripción de solo espacios es válida (comportamiento heredado de la v1) | Rechazada |
+| O-14 | sugerencia | `pom.xml:14-27` | Metadatos vacíos heredados de Spring Initializr | Aceptada |
 
 ### Detalle
 
@@ -144,19 +144,21 @@ Las líneas corresponden al commit `4aba570` (cabeza de la rama al momento de la
 
 | ID | Decisión (aceptada / rechazada) | Justificación si se rechaza | Commit de corrección |
 |---|---|---|---|
-| O-1 | | | |
-| O-2 | | | |
-| O-3 | | | |
-| O-4 | | | |
-| O-5 | | | |
-| O-6 | | | |
-| O-7 | | | |
-| O-8 | | | |
-| O-9 | | | |
-| O-10 | | | |
-| O-11 | | | |
-| O-12 | | | |
-| O-13 | | | |
-| O-14 | | | |
+| O-1 | Aceptada |  | `6abbe72` |
+| O-2 | Aceptada |  | `1dc11fc` |
+| O-3 | Aceptada (opción a: validación manual) |  | `792183e` (ADR-005, TRD actualizado) |
+| O-4 | Aceptada |  | `326eed0` |
+| O-5 | Aceptada |  | `d6e16c8` |
+| O-6 | Aceptada |  | `da59dbf` |
+| O-7 | Aceptada |  | `ef61fed` |
+| O-8 | Aceptada |  | `8fb3a98` |
+| O-9 | Aceptada |  | `c2aebc4` |
+| O-10 | Aceptada |  | `d4f805e` |
+| O-11 | Diferida | Se implementa en la Fase 6 (test no transaccional que detecte `LazyInitializationException` y test del `ManejadorGlobalErrores`), la fase que agrega tests fuera de `api/`. | Fase 6 |
+| O-12 | Rechazada | Los 4 query params (`estado`, `tipo`, `prioridad`, `legajo`) son el contrato HTTP de la búsqueda y no pueden cambiar. Internamente el filtro ya es un Parameter Object (`FiltroSolicitudes`, R05). El criterio de ≤3 parámetros aplica a métodos de dominio y aplicación, no al borde HTTP. | — |
+| O-13 | Rechazada | Aplicar `strip()` cambiaría el comportamiento externo heredado de la v1 (una descripción de solo espacios hoy es válida) y el TPI exige preservarlo. Se registra como límite conocido y mejora futura en las conclusiones. | — |
+| O-14 | Aceptada |  | `baad12e` |
 
-Las observaciones aceptadas se corrigen una por commit con el formato `fix(review): <descripción>`, como indica el plan (Fase 5, punto 5).
+Las observaciones aceptadas se corrigieron una por commit con el formato `fix(review): O-x <descripción>`, como indica el plan (Fase 5, punto 5). Después de cada corrección se corrió `.\mvnw.cmd test` (16/16) y una batería de 35 llamadas HTTP comparada con la línea base: sin diferencias, salvo O-9, que cambia solo el texto de 3 mensajes de error de framework (el código HTTP se mantiene).
+
+**Resultado final:** 11 aceptadas y corregidas, 1 diferida a la Fase 6 (O-11), 2 rechazadas con justificación (O-12 y O-13).
