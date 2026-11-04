@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NuevaSolicitud.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report"></a> &gt; <a href="index.source.html" class="el_package">ar.edu.utn.tup.solicitudes.aplicacion</a> &gt; <span class="el_source">NuevaSolicitud.java</span></div><h1>NuevaSolicitud.java</h1><pre class="source lang-java linenums">package ar.edu.utn.tup.solicitudes.aplicacion;
+
+import ar.edu.utn.tup.solicitudes.dominio.Prioridad;
+import ar.edu.utn.tup.solicitudes.dominio.TipoSolicitud;
+import ar.edu.utn.tup.solicitudes.dominio.excepciones.DatoInvalidoException;
+
+<span class="fc" id="L7">public record NuevaSolicitud(String legajo, TipoSolicitud tipo, String descripcion, Prioridad prioridad) {</span>
+
+    private static final int LONGITUD_MINIMA_DESCRIPCION = 10;
+    private static final int LONGITUD_MAXIMA_DESCRIPCION = 500;
+
+    public static NuevaSolicitud desde(PedidoRegistro pedido) {
+<span class="fc" id="L13">        validarDescripcion(pedido.descripcion());</span>
+<span class="fc" id="L14">        TipoSolicitud tipo = TipoSolicitud.parsear(pedido.tipo());</span>
+<span class="fc bfc" id="L15" title="All 2 branches covered.">        Prioridad prioridad = pedido.prioridad() == null ? null : Prioridad.parsear(pedido.prioridad());</span>
+<span class="fc" id="L16">        return new NuevaSolicitud(pedido.legajo(), tipo, pedido.descripcion(), prioridad);</span>
+    }
+
+    private static void validarDescripcion(String descripcion) {
+<span class="pc bpc" id="L20" title="1 of 4 branches missed.">        if (descripcion == null || descripcion.length() &lt; LONGITUD_MINIMA_DESCRIPCION</span>
+<span class="pc bpc" id="L21" title="1 of 2 branches missed.">                || descripcion.length() &gt; LONGITUD_MAXIMA_DESCRIPCION) {</span>
+<span class="fc" id="L22">            throw new DatoInvalidoException(&quot;La descripción debe tener entre &quot; + LONGITUD_MINIMA_DESCRIPCION</span>
+                    + &quot; y &quot; + LONGITUD_MAXIMA_DESCRIPCION + &quot; caracteres&quot;);
+        }
+<span class="fc" id="L25">    }</span>
+
+    public Prioridad prioridadEfectiva() {
+<span class="fc bfc" id="L28" title="All 2 branches covered.">        if (prioridad != null) {</span>
+<span class="fc" id="L29">            return prioridad;</span>
+        }
+<span class="fc" id="L31">        return tipo.prioridadPorDefecto();</span>
+    }
+
+    public int plazoDias() {
+<span class="fc" id="L35">        return prioridadEfectiva().ajustarPlazo(tipo.plazoDias());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

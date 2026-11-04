@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Solicitud.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">gestion-solicitudes-academicas</a> &gt; <a href="index.source.html" class="el_package">ar.edu.utn.tup.solicitudes.dominio</a> &gt; <span class="el_source">Solicitud.java</span></div><h1>Solicitud.java</h1><pre class="source lang-java linenums">package ar.edu.utn.tup.solicitudes.dominio;
+
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import ar.edu.utn.tup.solicitudes.dominio.excepciones.ReglaDeNegocioException;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+
+@Entity
+public class Solicitud {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(nullable = false, length = 40)
+    private TipoSolicitud tipo;
+
+    @Column(nullable = false, length = 500)
+    private String descripcion;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(nullable = false, length = 10)
+    private Prioridad prioridad;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(nullable = false, length = 20)
+    private EstadoSolicitud estado;
+
+    @Column(name = &quot;fecha_creacion&quot;, nullable = false)
+    private LocalDateTime fechaCreacion;
+
+    @Column(name = &quot;fecha_vencimiento&quot;, nullable = false)
+    private LocalDateTime fechaVencimiento;
+
+    @Column(name = &quot;fecha_actualizacion&quot;)
+    private LocalDateTime fechaActualizacion;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = &quot;estudiante_id&quot;, nullable = false)
+    private Estudiante estudiante;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;responsable_id&quot;)
+    private Responsable responsable;
+
+<span class="fc" id="L62">    protected Solicitud() {</span>
+<span class="fc" id="L63">    }</span>
+
+    public static Solicitud registrar(NuevaSolicitud nueva, Estudiante estudiante, LocalDateTime creacion) {
+<span class="fc" id="L66">        Solicitud solicitud = new Solicitud();</span>
+<span class="fc" id="L67">        solicitud.tipo = nueva.tipo();</span>
+<span class="fc" id="L68">        solicitud.descripcion = nueva.descripcion();</span>
+<span class="fc" id="L69">        solicitud.prioridad = nueva.prioridadEfectiva();</span>
+<span class="fc" id="L70">        solicitud.estado = EstadoSolicitud.PENDIENTE;</span>
+<span class="fc" id="L71">        solicitud.fechaCreacion = creacion;</span>
+<span class="fc" id="L72">        solicitud.fechaVencimiento = creacion.plusDays(nueva.plazoDias());</span>
+<span class="fc" id="L73">        solicitud.estudiante = estudiante;</span>
+<span class="fc" id="L74">        return solicitud;</span>
+    }
+
+    public boolean estaCerrada() {
+<span class="fc" id="L78">        return estado.esCerrado();</span>
+    }
+
+    public boolean estaVencida(LocalDateTime ahora) {
+<span class="fc bfc" id="L82" title="All 4 branches covered.">        return !estaCerrada() &amp;&amp; fechaVencimiento.isBefore(ahora);</span>
+    }
+
+    public boolean tieneResponsable() {
+<span class="fc bfc" id="L86" title="All 2 branches covered.">        return responsable != null;</span>
+    }
+
+    public void cambiarEstado(EstadoSolicitud nuevo, LocalDateTime ahora) {
+<span class="fc bfc" id="L90" title="All 2 branches covered.">        if (!estado.puedeTransicionarA(nuevo)) {</span>
+<span class="fc" id="L91">            throw new ReglaDeNegocioException(&quot;Transición inválida: &quot; + estado + &quot; -&gt; &quot; + nuevo);</span>
+        }
+<span class="fc bfc" id="L93" title="All 4 branches covered.">        if (nuevo.requiereResponsable() &amp;&amp; !tieneResponsable()) {</span>
+<span class="fc" id="L94">            throw new ReglaDeNegocioException(</span>
+<span class="fc" id="L95">                    &quot;La solicitud requiere un responsable asignado para pasar a &quot; + nuevo);</span>
+        }
+<span class="fc" id="L97">        this.estado = nuevo;</span>
+<span class="fc" id="L98">        this.fechaActualizacion = ahora;</span>
+<span class="fc" id="L99">    }</span>
+
+    public void verificarQueAdmiteResponsable() {
+<span class="fc bfc" id="L102" title="All 2 branches covered.">        if (estaCerrada()) {</span>
+<span class="fc" id="L103">            throw new ReglaDeNegocioException(&quot;La solicitud está cerrada: &quot; + id);</span>
+        }
+<span class="fc" id="L105">    }</span>
+
+    public void asignarResponsable(Responsable nuevoResponsable, LocalDateTime ahora) {
+<span class="fc" id="L108">        verificarQueAdmiteResponsable();</span>
+<span class="fc bfc" id="L109" title="All 2 branches covered.">        if (!nuevoResponsable.isActivo()) {</span>
+<span class="fc" id="L110">            throw new ReglaDeNegocioException(&quot;El responsable no está activo: &quot; + nuevoResponsable.getId());</span>
+        }
+<span class="fc" id="L112">        this.responsable = nuevoResponsable;</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">        if (estado == EstadoSolicitud.PENDIENTE) {</span>
+<span class="fc" id="L114">            cambiarEstado(EstadoSolicitud.EN_ANALISIS, ahora);</span>
+        }
+<span class="fc" id="L116">    }</span>
+
+    public Long getId() {
+<span class="fc" id="L119">        return id;</span>
+    }
+
+    public TipoSolicitud getTipo() {
+<span class="fc" id="L123">        return tipo;</span>
+    }
+
+    public String getDescripcion() {
+<span class="fc" id="L127">        return descripcion;</span>
+    }
+
+    public Prioridad getPrioridad() {
+<span class="fc" id="L131">        return prioridad;</span>
+    }
+
+    public EstadoSolicitud getEstado() {
+<span class="fc" id="L135">        return estado;</span>
+    }
+
+    public LocalDateTime getFechaCreacion() {
+<span class="fc" id="L139">        return fechaCreacion;</span>
+    }
+
+    public LocalDateTime getFechaVencimiento() {
+<span class="fc" id="L143">        return fechaVencimiento;</span>
+    }
+
+    public LocalDateTime getFechaActualizacion() {
+<span class="fc" id="L147">        return fechaActualizacion;</span>
+    }
+
+    public Estudiante getEstudiante() {
+<span class="fc" id="L151">        return estudiante;</span>
+    }
+
+    public Responsable getResponsable() {
+<span class="fc" id="L155">        return responsable;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

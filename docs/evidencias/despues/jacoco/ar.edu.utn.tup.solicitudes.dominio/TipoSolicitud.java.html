@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TipoSolicitud.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">gestion-solicitudes-academicas</a> &gt; <a href="index.source.html" class="el_package">ar.edu.utn.tup.solicitudes.dominio</a> &gt; <span class="el_source">TipoSolicitud.java</span></div><h1>TipoSolicitud.java</h1><pre class="source lang-java linenums">package ar.edu.utn.tup.solicitudes.dominio;
+
+import ar.edu.utn.tup.solicitudes.dominio.excepciones.DatoInvalidoException;
+
+<span class="fc" id="L5">public enum TipoSolicitud {</span>
+
+<span class="fc" id="L7">    CERTIFICADO_ALUMNO_REGULAR(2, Prioridad.MEDIA),</span>
+<span class="fc" id="L8">    REVISION_EXAMEN(5, Prioridad.ALTA),</span>
+<span class="fc" id="L9">    EQUIVALENCIA(15, Prioridad.BAJA),</span>
+<span class="fc" id="L10">    CAMBIO_COMISION(3, Prioridad.MEDIA),</span>
+<span class="fc" id="L11">    OTRO(7, Prioridad.BAJA);</span>
+
+    private final int plazoDias;
+    private final Prioridad prioridadPorDefecto;
+
+<span class="fc" id="L16">    TipoSolicitud(int plazoDias, Prioridad prioridadPorDefecto) {</span>
+<span class="fc" id="L17">        this.plazoDias = plazoDias;</span>
+<span class="fc" id="L18">        this.prioridadPorDefecto = prioridadPorDefecto;</span>
+<span class="fc" id="L19">    }</span>
+
+    public int plazoDias() {
+<span class="fc" id="L22">        return plazoDias;</span>
+    }
+
+    public Prioridad prioridadPorDefecto() {
+<span class="fc" id="L26">        return prioridadPorDefecto;</span>
+    }
+
+    public static TipoSolicitud parsear(String valor) {
+<span class="fc bfc" id="L30" title="All 2 branches covered.">        for (TipoSolicitud tipo : values()) {</span>
+<span class="fc bfc" id="L31" title="All 2 branches covered.">            if (tipo.name().equals(valor)) {</span>
+<span class="fc" id="L32">                return tipo;</span>
+            }
+        }
+<span class="fc" id="L35">        throw new DatoInvalidoException(&quot;Tipo de solicitud inválido: &quot; + valor);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

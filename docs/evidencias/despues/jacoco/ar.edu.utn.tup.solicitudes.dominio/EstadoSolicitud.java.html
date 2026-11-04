@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EstadoSolicitud.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">gestion-solicitudes-academicas</a> &gt; <a href="index.source.html" class="el_package">ar.edu.utn.tup.solicitudes.dominio</a> &gt; <span class="el_source">EstadoSolicitud.java</span></div><h1>EstadoSolicitud.java</h1><pre class="source lang-java linenums">package ar.edu.utn.tup.solicitudes.dominio;
+
+import ar.edu.utn.tup.solicitudes.dominio.excepciones.DatoInvalidoException;
+
+<span class="fc" id="L5">public enum EstadoSolicitud {</span>
+
+<span class="fc" id="L7">    PENDIENTE,</span>
+<span class="fc" id="L8">    EN_ANALISIS,</span>
+<span class="fc" id="L9">    RESUELTA,</span>
+<span class="fc" id="L10">    RECHAZADA,</span>
+<span class="fc" id="L11">    CANCELADA;</span>
+
+    public boolean puedeTransicionarA(EstadoSolicitud destino) {
+<span class="fc bfc" id="L14" title="All 3 branches covered.">        return switch (this) {</span>
+<span class="fc bfc" id="L15" title="All 4 branches covered.">            case PENDIENTE -&gt; destino == EN_ANALISIS || destino == CANCELADA;</span>
+<span class="fc bfc" id="L16" title="All 4 branches covered.">            case EN_ANALISIS -&gt; destino == RESUELTA || destino == RECHAZADA;</span>
+<span class="fc" id="L17">            case RESUELTA, RECHAZADA, CANCELADA -&gt; false;</span>
+        };
+    }
+
+    public boolean esCerrado() {
+<span class="fc bfc" id="L22" title="All 6 branches covered.">        return this == RESUELTA || this == RECHAZADA || this == CANCELADA;</span>
+    }
+
+    public boolean esResolucion() {
+<span class="fc bfc" id="L26" title="All 4 branches covered.">        return this == RESUELTA || this == RECHAZADA;</span>
+    }
+
+    public boolean requiereResponsable() {
+<span class="fc" id="L30">        return esResolucion();</span>
+    }
+
+    public static EstadoSolicitud parsear(String valor) {
+<span class="fc bfc" id="L34" title="All 2 branches covered.">        for (EstadoSolicitud estado : values()) {</span>
+<span class="fc bfc" id="L35" title="All 2 branches covered.">            if (estado.name().equals(valor)) {</span>
+<span class="fc" id="L36">                return estado;</span>
+            }
+        }
+<span class="fc" id="L39">        throw new DatoInvalidoException(&quot;Estado inválido: &quot; + valor);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

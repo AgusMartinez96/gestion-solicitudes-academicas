@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SolicitudController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">gestion-solicitudes-academicas</a> &gt; <a href="index.source.html" class="el_package">ar.edu.utn.tup.solicitudes.web</a> &gt; <span class="el_source">SolicitudController.java</span></div><h1>SolicitudController.java</h1><pre class="source lang-java linenums">package ar.edu.utn.tup.solicitudes.web;
+
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
+import ar.edu.utn.tup.solicitudes.aplicacion.FiltroSolicitudes;
+import ar.edu.utn.tup.solicitudes.aplicacion.SolicitudService;
+import ar.edu.utn.tup.solicitudes.dominio.EstadoSolicitud;
+import ar.edu.utn.tup.solicitudes.dominio.Prioridad;
+import ar.edu.utn.tup.solicitudes.dominio.TipoSolicitud;
+import ar.edu.utn.tup.solicitudes.web.dto.AsignarResponsableRequest;
+import ar.edu.utn.tup.solicitudes.web.dto.CambiarEstadoRequest;
+import ar.edu.utn.tup.solicitudes.web.dto.ErrorResponse;
+import ar.edu.utn.tup.solicitudes.web.dto.RegistrarSolicitudRequest;
+import ar.edu.utn.tup.solicitudes.web.dto.SolicitudResponse;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
+@RestController
+public class SolicitudController {
+
+    private final SolicitudService solicitudService;
+    private final SolicitudMapper mapper;
+
+<span class="fc" id="L36">    public SolicitudController(SolicitudService solicitudService, SolicitudMapper mapper) {</span>
+<span class="fc" id="L37">        this.solicitudService = solicitudService;</span>
+<span class="fc" id="L38">        this.mapper = mapper;</span>
+<span class="fc" id="L39">    }</span>
+
+    @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Dato inválido (descripción, tipo o prioridad)&quot;,
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Estudiante no encontrado&quot;,
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @PostMapping(value = &quot;/api/solicitudes&quot;, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
+    public SolicitudResponse crear(@RequestBody RegistrarSolicitudRequest request) {
+<span class="fc" id="L48">        return mapper.aResponse(solicitudService.registrar(mapper.aPedido(request)));</span>
+    }
+
+    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;OK&quot;)
+    @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Identificador no numérico&quot;,
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Solicitud no encontrada&quot;,
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @GetMapping(value = &quot;/api/solicitudes/{id}&quot;, produces = MediaType.APPLICATION_JSON_VALUE)
+    public SolicitudResponse obtener(@PathVariable(&quot;id&quot;) Long solicitudId) {
+<span class="fc" id="L58">        return mapper.aResponse(solicitudService.obtener(solicitudId));</span>
+    }
+
+    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;OK&quot;)
+    @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Estado, tipo o prioridad inválidos&quot;,
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @GetMapping(value = &quot;/api/solicitudes&quot;, produces = MediaType.APPLICATION_JSON_VALUE)
+    public List&lt;SolicitudResponse&gt; listar(@RequestParam(name = &quot;estado&quot;, required = false) String estado,
+            @RequestParam(name = &quot;tipo&quot;, required = false) String tipo,
+            @RequestParam(name = &quot;prioridad&quot;, required = false) String prioridad,
+            @RequestParam(name = &quot;legajo&quot;, required = false) String legajo) {
+<span class="fc" id="L69">        FiltroSolicitudes filtro = new FiltroSolicitudes(</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">                estado == null ? null : EstadoSolicitud.parsear(estado),</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">                tipo == null ? null : TipoSolicitud.parsear(tipo),</span>
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">                prioridad == null ? null : Prioridad.parsear(prioridad),</span>
+<span class="fc" id="L73">                legajo);</span>
+<span class="fc" id="L74">        return mapper.aResponse(solicitudService.buscar(filtro));</span>
+    }
+
+    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;OK&quot;)
+    @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Estado inválido&quot;,
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Solicitud no encontrada&quot;,
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = &quot;409&quot;, description = &quot;Transición no permitida o falta responsable&quot;,
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @PatchMapping(value = &quot;/api/solicitudes/{id}/estado&quot;, produces = MediaType.APPLICATION_JSON_VALUE)
+    public SolicitudResponse cambiarEstado(@PathVariable(&quot;id&quot;) Long solicitudId,
+            @RequestBody CambiarEstadoRequest request) {
+<span class="fc" id="L87">        return mapper.aResponse(solicitudService.cambiarEstado(solicitudId, request.estado()));</span>
+    }
+
+    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;OK&quot;)
+    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Solicitud o responsable no encontrado&quot;,
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = &quot;409&quot;, description = &quot;Solicitud cerrada o responsable inactivo&quot;,
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @PatchMapping(value = &quot;/api/solicitudes/{id}/responsable&quot;, produces = MediaType.APPLICATION_JSON_VALUE)
+    public SolicitudResponse asignarResponsable(@PathVariable(&quot;id&quot;) Long solicitudId,
+            @RequestBody AsignarResponsableRequest request) {
+<span class="fc" id="L98">        return mapper.aResponse(solicitudService.asignarResponsable(solicitudId, request.responsableId()));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

@@ -53,7 +53,7 @@ La columna **Resultado** se completa después de resolver las observaciones (✅
 
 | # | Criterio | Cómo se verifica | Resultado | Observación | Acción |
 |---|---|---|---|---|---|
-| E1 | Tests unitarios del dominio | `src/test/.../dominio/` (planificado para la Fase 6) | ⚠️ | O-11 | Diferido a la Fase 6 (O-11) |
+| E1 | Tests unitarios del dominio | `src/test/.../dominio/` (planificado para la Fase 6) | ✅ | O-11 | O-11 resuelta en la Fase 6: 63 tests unitarios de dominio, `SolicitudServiceTest`, `ManejadorGlobalErroresTest` e integración no transaccional (ver `06-pruebas-verificacion.md`) |
 | E2 | Nombres descriptivos | `@DisplayName("CP-xx — ...")` en los tests de caracterización | ✅ | | |
 | E3 | Sin dependencia de la hora real | `Clock` inyectado en `src/main`; `grep` de `LocalDateTime.now()` sin reloj (0) | ✅ | O-5 | O-5 resuelta: una sola lectura de reloj por operación |
 
@@ -103,7 +103,7 @@ Las líneas corresponden al commit `4aba570` (cabeza de la rama al momento de la
 | O-8 | menor | `SolicitudService.java:25`; `ReporteService.java:18` | Consultas dentro de transacciones de lectura-escritura | Aceptada |
 | O-9 | menor | `ManejadorGlobalErrores.java:59-74` | Mensajes de errores de framework en inglés | Aceptada |
 | O-10 | menor | `SolicitudResponse.java:15-17`; `SolicitudController.java:34-69` | OpenAPI documenta un formato de fecha distinto al real y no documenta los errores | Aceptada |
-| O-11 | menor | `src/test/` | Sin tests para el manejador de errores ni para el caso de carga diferida | Diferida a la Fase 6 |
+| O-11 | menor | `src/test/` | Sin tests para el manejador de errores ni para el caso de carga diferida | Diferida, resuelta en la Fase 6 |
 | O-12 | sugerencia | `SolicitudController.java:47-56` | `listar` con 4 parámetros y armado del filtro en el controller | Rechazada |
 | O-13 | sugerencia | `SolicitudMapper.java:105-111` | Una descripción de solo espacios es válida (comportamiento heredado de la v1) | Rechazada |
 | O-14 | sugerencia | `pom.xml:14-27` | Metadatos vacíos heredados de Spring Initializr | Aceptada |
@@ -154,7 +154,7 @@ Las líneas corresponden al commit `4aba570` (cabeza de la rama al momento de la
 | O-8 | Aceptada |  | `8fb3a98` |
 | O-9 | Aceptada |  | `c2aebc4` |
 | O-10 | Aceptada |  | `d4f805e` |
-| O-11 | Diferida | Se implementa en la Fase 6 (test no transaccional que detecte `LazyInitializationException` y test del `ManejadorGlobalErrores`), la fase que agrega tests fuera de `api/`. | Fase 6 |
+| O-11 | Diferida y resuelta en la Fase 6 | Se implementó en la Fase 6 (test no transaccional que detecte `LazyInitializationException` y test del `ManejadorGlobalErrores`), la fase que agrega tests fuera de `api/`. | Fase 6 (`test: test de integración no transaccional y del manejador de errores (O-11)`) |
 | O-12 | Rechazada | Los 4 query params (`estado`, `tipo`, `prioridad`, `legajo`) son el contrato HTTP de la búsqueda y no pueden cambiar. Internamente el filtro ya es un Parameter Object (`FiltroSolicitudes`, R05). El criterio de ≤3 parámetros aplica a métodos de dominio y aplicación, no al borde HTTP. | — |
 | O-13 | Rechazada | Aplicar `strip()` cambiaría el comportamiento externo heredado de la v1 (una descripción de solo espacios hoy es válida) y el TPI exige preservarlo. Se registra como límite conocido y mejora futura en las conclusiones. | — |
 | O-14 | Aceptada |  | `baad12e` |

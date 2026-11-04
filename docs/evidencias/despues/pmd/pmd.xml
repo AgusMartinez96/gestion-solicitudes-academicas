@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pmd xmlns="http://pmd.sourceforge.net/report/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/report/2.0.0 https://pmd.github.io/schema/report_2_0_0.xsd" version="7.17.0" timestamp="2026-11-04T16:24:09.726">
+<file name="C:\Users\Agustin\Desktop\Metodologia\gestion-solicitudes-academicas\src\main\java\ar\edu\utn\tup\solicitudes\dominio\Estudiante.java">
+<violation beginline="14" endline="14" begincolumn="18" endcolumn="20" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.dominio" class="Estudiante" variable="id" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like id
+</violation>
+<violation beginline="32" endline="32" begincolumn="28" endcolumn="30" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.dominio" class="Estudiante" method="setId" variable="id" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like id
+</violation>
+</file>
+<file name="C:\Users\Agustin\Desktop\Metodologia\gestion-solicitudes-academicas\src\main\java\ar\edu\utn\tup\solicitudes\dominio\Responsable.java">
+<violation beginline="14" endline="14" begincolumn="18" endcolumn="20" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.dominio" class="Responsable" variable="id" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like id
+</violation>
+<violation beginline="32" endline="32" begincolumn="28" endcolumn="30" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.dominio" class="Responsable" method="setId" variable="id" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like id
+</violation>
+</file>
+<file name="C:\Users\Agustin\Desktop\Metodologia\gestion-solicitudes-academicas\src\main\java\ar\edu\utn\tup\solicitudes\dominio\Solicitud.java">
+<violation beginline="25" endline="25" begincolumn="18" endcolumn="20" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.dominio" class="Solicitud" variable="id" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like id
+</violation>
+</file>
+<file name="C:\Users\Agustin\Desktop\Metodologia\gestion-solicitudes-academicas\src\main\java\ar\edu\utn\tup\solicitudes\web\dto\EstudianteResponse.java">
+<violation beginline="3" endline="3" begincolumn="39" endcolumn="41" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.web.dto" class="EstudianteResponse" variable="id" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like id
+</violation>
+</file>
+<file name="C:\Users\Agustin\Desktop\Metodologia\gestion-solicitudes-academicas\src\main\java\ar\edu\utn\tup\solicitudes\web\dto\ResponsableResponse.java">
+<violation beginline="3" endline="3" begincolumn="40" endcolumn="42" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.web.dto" class="ResponsableResponse" variable="id" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like id
+</violation>
+</file>
+<file name="C:\Users\Agustin\Desktop\Metodologia\gestion-solicitudes-academicas\src\main\java\ar\edu\utn\tup\solicitudes\web\dto\ResponsableResumen.java">
+<violation beginline="3" endline="3" begincolumn="39" endcolumn="41" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.web.dto" class="ResponsableResumen" variable="id" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like id
+</violation>
+</file>
+<file name="C:\Users\Agustin\Desktop\Metodologia\gestion-solicitudes-academicas\src\main\java\ar\edu\utn\tup\solicitudes\web\dto\SolicitudResponse.java">
+<violation beginline="11" endline="11" begincolumn="14" endcolumn="16" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.web.dto" class="SolicitudResponse" variable="id" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
+Avoid variables with short names like id
+</violation>
+</file>
+</pmd>

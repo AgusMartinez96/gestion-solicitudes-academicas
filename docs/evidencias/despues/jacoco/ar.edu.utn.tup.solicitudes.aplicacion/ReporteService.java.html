@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReporteService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">gestion-solicitudes-academicas</a> &gt; <a href="index.source.html" class="el_package">ar.edu.utn.tup.solicitudes.aplicacion</a> &gt; <span class="el_source">ReporteService.java</span></div><h1>ReporteService.java</h1><pre class="source lang-java linenums">package ar.edu.utn.tup.solicitudes.aplicacion;
+
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import ar.edu.utn.tup.solicitudes.dominio.EstadoSolicitud;
+import ar.edu.utn.tup.solicitudes.dominio.Solicitud;
+import ar.edu.utn.tup.solicitudes.dominio.TipoSolicitud;
+import ar.edu.utn.tup.solicitudes.persistencia.SolicitudRepository;
+
+@Service
+@Transactional(readOnly = true)
+public class ReporteService {
+
+    private final SolicitudRepository solicitudRepository;
+    private final Clock clock;
+
+<span class="fc" id="L24">    public ReporteService(SolicitudRepository solicitudRepository, Clock clock) {</span>
+<span class="fc" id="L25">        this.solicitudRepository = solicitudRepository;</span>
+<span class="fc" id="L26">        this.clock = clock;</span>
+<span class="fc" id="L27">    }</span>
+
+    public ReporteResumen resumen() {
+<span class="fc" id="L30">        List&lt;Solicitud&gt; todas = solicitudRepository.findAll();</span>
+<span class="fc" id="L31">        return new ReporteResumen(todas.size(), contarPorEstado(todas), contarPorTipo(todas),</span>
+<span class="fc" id="L32">                contarVencidas(todas));</span>
+    }
+
+    private Map&lt;EstadoSolicitud, Integer&gt; contarPorEstado(List&lt;Solicitud&gt; todas) {
+<span class="fc" id="L36">        Map&lt;EstadoSolicitud, Integer&gt; porEstado = new EnumMap&lt;&gt;(EstadoSolicitud.class);</span>
+<span class="fc bfc" id="L37" title="All 2 branches covered.">        for (EstadoSolicitud estado : EstadoSolicitud.values()) {</span>
+<span class="fc" id="L38">            porEstado.put(estado, 0);</span>
+        }
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        for (Solicitud solicitud : todas) {</span>
+<span class="fc" id="L41">            porEstado.merge(solicitud.getEstado(), 1, Integer::sum);</span>
+        }
+<span class="fc" id="L43">        return porEstado;</span>
+    }
+
+    private Map&lt;TipoSolicitud, Integer&gt; contarPorTipo(List&lt;Solicitud&gt; todas) {
+<span class="fc" id="L47">        Map&lt;TipoSolicitud, Integer&gt; porTipo = new EnumMap&lt;&gt;(TipoSolicitud.class);</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">        for (TipoSolicitud tipo : TipoSolicitud.values()) {</span>
+<span class="fc" id="L49">            porTipo.put(tipo, 0);</span>
+        }
+<span class="fc bfc" id="L51" title="All 2 branches covered.">        for (Solicitud solicitud : todas) {</span>
+<span class="fc" id="L52">            porTipo.merge(solicitud.getTipo(), 1, Integer::sum);</span>
+        }
+<span class="fc" id="L54">        return porTipo;</span>
+    }
+
+    private int contarVencidas(List&lt;Solicitud&gt; todas) {
+<span class="fc" id="L58">        int vencidas = 0;</span>
+<span class="fc" id="L59">        LocalDateTime ahora = LocalDateTime.now(clock);</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">        for (Solicitud solicitud : todas) {</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">            if (solicitud.estaVencida(ahora)) {</span>
+<span class="fc" id="L62">                vencidas++;</span>
+            }
+        }
+<span class="fc" id="L65">        return vencidas;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SolicitudService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">gestion-solicitudes-academicas</a> &gt; <a href="index.source.html" class="el_package">ar.edu.utn.tup.solicitudes.aplicacion</a> &gt; <span class="el_source">SolicitudService.java</span></div><h1>SolicitudService.java</h1><pre class="source lang-java linenums">package ar.edu.utn.tup.solicitudes.aplicacion;
+
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import ar.edu.utn.tup.solicitudes.dominio.EstadoSolicitud;
+import ar.edu.utn.tup.solicitudes.dominio.Estudiante;
+import ar.edu.utn.tup.solicitudes.dominio.NuevaSolicitud;
+import ar.edu.utn.tup.solicitudes.dominio.Responsable;
+import ar.edu.utn.tup.solicitudes.dominio.Solicitud;
+import ar.edu.utn.tup.solicitudes.dominio.excepciones.RecursoNoEncontradoException;
+import ar.edu.utn.tup.solicitudes.persistencia.EstudianteRepository;
+import ar.edu.utn.tup.solicitudes.persistencia.ResponsableRepository;
+import ar.edu.utn.tup.solicitudes.persistencia.SolicitudRepository;
+
+@Service
+@Transactional(readOnly = true)
+public class SolicitudService {
+
+    private final SolicitudRepository solicitudRepository;
+    private final EstudianteRepository estudianteRepository;
+    private final ResponsableRepository responsableRepository;
+    private final Notificador notificador;
+    private final Clock clock;
+
+<span class="fc" id="L33">    public SolicitudService(SolicitudRepository solicitudRepository, EstudianteRepository estudianteRepository,</span>
+            ResponsableRepository responsableRepository, Notificador notificador, Clock clock) {
+<span class="fc" id="L35">        this.solicitudRepository = solicitudRepository;</span>
+<span class="fc" id="L36">        this.estudianteRepository = estudianteRepository;</span>
+<span class="fc" id="L37">        this.responsableRepository = responsableRepository;</span>
+<span class="fc" id="L38">        this.notificador = notificador;</span>
+<span class="fc" id="L39">        this.clock = clock;</span>
+<span class="fc" id="L40">    }</span>
+
+    @Transactional
+    public SolicitudDetalle registrar(PedidoRegistro pedido) {
+<span class="fc" id="L44">        NuevaSolicitud nueva = pedido.validar();</span>
+<span class="fc" id="L45">        Estudiante estudiante = buscarEstudiante(nueva.legajo());</span>
+<span class="fc" id="L46">        Solicitud solicitud = Solicitud.registrar(nueva, estudiante, ahoraTruncado());</span>
+<span class="fc" id="L47">        return aDetalle(solicitudRepository.save(solicitud));</span>
+    }
+
+    public SolicitudDetalle obtener(Long solicitudId) {
+<span class="fc" id="L51">        return aDetalle(buscarSolicitud(solicitudId));</span>
+    }
+
+    public List&lt;SolicitudDetalle&gt; buscar(FiltroSolicitudes filtro) {
+<span class="fc" id="L55">        List&lt;Solicitud&gt; coincidentes = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">        for (Solicitud solicitud : solicitudRepository.findAllConDetalle()) {</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">            if (filtro.coincideCon(solicitud)) {</span>
+<span class="fc" id="L58">                coincidentes.add(solicitud);</span>
+            }
+        }
+<span class="fc" id="L61">        coincidentes.sort(Comparator.comparing(Solicitud::getId));</span>
+<span class="fc" id="L62">        return aDetalles(coincidentes);</span>
+    }
+
+    @Transactional
+    public SolicitudDetalle cambiarEstado(Long solicitudId, String textoEstado) {
+<span class="fc" id="L67">        Solicitud solicitud = buscarSolicitud(solicitudId);</span>
+<span class="fc" id="L68">        EstadoSolicitud nuevoEstado = EstadoSolicitud.parsear(textoEstado);</span>
+<span class="fc" id="L69">        solicitud.cambiarEstado(nuevoEstado, ahoraTruncado());</span>
+<span class="fc" id="L70">        Solicitud guardada = solicitudRepository.save(solicitud);</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">        if (guardada.getEstado().esResolucion()) {</span>
+<span class="fc" id="L72">            notificador.notificarCierre(guardada);</span>
+        }
+<span class="fc" id="L74">        return aDetalle(guardada);</span>
+    }
+
+    @Transactional
+    public SolicitudDetalle asignarResponsable(Long solicitudId, Long responsableId) {
+<span class="fc" id="L79">        Solicitud solicitud = buscarSolicitud(solicitudId);</span>
+<span class="fc" id="L80">        solicitud.verificarQueAdmiteResponsable();</span>
+<span class="fc" id="L81">        Responsable responsable = buscarResponsable(responsableId);</span>
+<span class="fc" id="L82">        solicitud.asignarResponsable(responsable, ahoraTruncado());</span>
+<span class="fc" id="L83">        return aDetalle(solicitudRepository.save(solicitud));</span>
+    }
+
+    private Solicitud buscarSolicitud(Long solicitudId) {
+<span class="fc" id="L87">        return solicitudRepository.findDetalleById(solicitudId).orElseThrow(</span>
+<span class="fc" id="L88">                () -&gt; new RecursoNoEncontradoException(&quot;Solicitud no encontrada: &quot; + solicitudId));</span>
+    }
+
+    private Estudiante buscarEstudiante(String legajo) {
+<span class="fc" id="L92">        return estudianteRepository.findByLegajo(legajo).orElseThrow(</span>
+<span class="fc" id="L93">                () -&gt; new RecursoNoEncontradoException(&quot;Estudiante no encontrado: &quot; + legajo));</span>
+    }
+
+    private Responsable buscarResponsable(Long responsableId) {
+<span class="fc bfc" id="L97" title="All 2 branches covered.">        Responsable responsable = responsableId == null ? null</span>
+<span class="fc" id="L98">                : responsableRepository.findById(responsableId).orElse(null);</span>
+<span class="fc bfc" id="L99" title="All 2 branches covered.">        if (responsable == null) {</span>
+<span class="fc" id="L100">            throw new RecursoNoEncontradoException(&quot;Responsable no encontrado: &quot; + responsableId);</span>
+        }
+<span class="fc" id="L102">        return responsable;</span>
+    }
+
+    private SolicitudDetalle aDetalle(Solicitud solicitud) {
+<span class="fc" id="L106">        return new SolicitudDetalle(solicitud, solicitud.estaVencida(LocalDateTime.now(clock)));</span>
+    }
+
+    private List&lt;SolicitudDetalle&gt; aDetalles(List&lt;Solicitud&gt; solicitudes) {
+<span class="fc" id="L110">        LocalDateTime ahora = LocalDateTime.now(clock);</span>
+<span class="fc" id="L111">        return solicitudes.stream()</span>
+<span class="fc" id="L112">                .map(solicitud -&gt; new SolicitudDetalle(solicitud, solicitud.estaVencida(ahora))).toList();</span>
+    }
+
+    private LocalDateTime ahoraTruncado() {
+<span class="fc" id="L116">        return LocalDateTime.now(clock).truncatedTo(ChronoUnit.SECONDS);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.16.202610240946</span></div></body></html>
