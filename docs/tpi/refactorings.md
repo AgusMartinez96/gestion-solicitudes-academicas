@@ -250,7 +250,7 @@
   3. Borrar `Utils.calcularDias` y `Utils.validar` cuando quedaron sin uso, y comprobar por HTTP que los mensajes de error no cambiaron (`POST` sin legajo → 404 `Estudiante no encontrado: null`; prioridad `URGENTE` → 400 `Prioridad inválida: URGENTE`; prioridad vacía → 400 `Prioridad inválida: `), idénticos a la línea base previa al cambio.
 - **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`.
 - **Fuera de alcance de R04:** los números `2, 3, 5, 7, 15` y el `/ 2` siguen como literales en el enum (son datos del dominio; el `/ 2` pasará a una constante en R09).
-- **Commit:** _(se completa al terminar la tanda)_
+- **Commit:** `bbe0574`
 
 ---
 
@@ -300,7 +300,7 @@
   4. Verificar por HTTP los casos de error con entradas múltiples.
 - **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`.
 - **Fuera de alcance de R05:** las respuestas siguen siendo `Map<String, Object>` (DTOs de respuesta tipados, y por ende el "Example Value" de Swagger, quedan para después); el contrato de errores sigue siendo el de la v1 (R07).
-- **Commit:** _(se completa al terminar la tanda)_
+- **Commit:** `f4d44c2`
 
 ---
 
@@ -350,7 +350,7 @@
 - **Cambios de comportamiento aceptados:** el endpoint de reporte ya no captura `Exception` (no tiene errores de negocio posibles); una falla inesperada devolvería el 500 genérico de Spring en lugar de texto plano. No hay entrada válida que cambie de resultado.
 - **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0` + verificación por HTTP descripta arriba.
 - **Fuera de alcance de la parte A:** `catch (Exception)` y el parseo de `"404|..."` (R07); `new NotificadorConsola()`, `LocalDateTime.now()`, `Utils` (R08); `System.out`, nombres cortos y el bloque comentado (R09); `SoporteController` sigue con `@Autowired` y mapeo propio.
-- **Commit:** _(se completa al terminar la tanda)_
+- **Commit:** `1c8d5af`
 
 ### R06 · Parte B — Reorganizar los paquetes por capas
 
@@ -395,4 +395,4 @@
   📸 [CAPTURA PENDIENTE: Swagger UI con `reporte-controller` separado, para guardar como `docs/evidencias/despues/capturas/01-swagger-endpoints.png`]
 - **Pasos seguros aplicados:** (1) mover los archivos con `git mv`; (2) reemplazar los nombres de paquete con una sola sustitución sobre `src/main`; (3) borrar el import redundante; (4) compilar y ejecutar los tests; (5) levantar la app y repetir las pruebas HTTP (GET con y sin responsable, `PATCH` de estado y responsable, `POST`, reporte, soporte), sin errores de sesión en el log.
 - **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`. `src/test/` no se modificó.
-- **Commit:** _(se completa al terminar la tanda)_
+- **Commit:** `3b32287`
