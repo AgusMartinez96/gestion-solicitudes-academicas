@@ -301,3 +301,53 @@
 - **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`.
 - **Fuera de alcance de R05:** las respuestas siguen siendo `Map<String, Object>` (DTOs de respuesta tipados, y por ende el "Example Value" de Swagger, quedan para después); el contrato de errores sigue siendo el de la v1 (R07).
 - **Commit:** _(se completa al terminar la tanda)_
+
+---
+
+## R06 — Extract Class
+
+> R06 se hizo en **dos commits**: la parte A extrae las clases (esta sección) y la parte B reorganiza los paquetes por capas (sección siguiente).
+
+### R06 · Parte A — Extraer `SolicitudService`, `ReporteService`, `SolicitudMapper` y `ReporteController`
+
+- **Smell(s):** S01 (God Class), y de rebote S11 (`@Transactional` en el controller) · **Principio:** **SRP** (una razón de cambio por clase).
+- **Motivación:** `SolicitudController` mezclaba siete responsabilidades: recibir HTTP, validar, aplicar reglas de negocio, acceder a datos, armar JSON, notificar y calcular el reporte. Swagger lo mostraba: el reporte aparecía dentro de `solicitud-controller` (`capturas/01-swagger-endpoints.png`).
+- **Antes (`f4d44c2`, commit de R05):** `SolicitudController` de 330 líneas (433 en `estado-inicial`), con `@Autowired` en tres repositorios, `@Transactional` en la clase, el reporte (`reporte`, `contarPorEstado`, `contarPorTipo`, `contarVencidas`), el mapeo (`aMap`, `aMapEstudiante`, `aMapResponsable`), las búsquedas (`buscarSolicitud`, `buscarEstudiante`, `buscarResponsableActivo`) y la lógica de cada caso de uso.
+- **Después — reparto de responsabilidades:**
+
+  | Clase | Responsabilidad única | Líneas |
+  |---|---|---|
+  | `controller/SolicitudController` | Recibir HTTP, delegar y traducir el error a texto (sigue hasta R07) | **111** (antes 433) |
+  | `aplicacion/SolicitudService` | Casos de uso RF-01 a RF-05 y transacción | 144 |
+  | `aplicacion/ReporteService` | Resumen estadístico (RF-06) | 64 |
+  | `aplicacion/ReporteResumen` | Resultado tipado del reporte (record) | 10 |
+  | `web/SolicitudMapper` | Único lugar que convierte request → dominio y dominio → `Map` JSON | 108 |
+  | `web/ReporteController` | Endpoint `GET /api/reportes/resumen` | 25 |
+
+  - `SolicitudController` quedó con endpoints de 3 a 8 líneas:
+    ```java
+    @PostMapping("/api/solicitudes")
+    public ResponseEntity<Object> crear(@RequestBody RegistrarSolicitudRequest request) {
+        try {
+            System.out.println("DEBUG crear solicitud legajo=" + request.legajo() + " tipo=" + request.tipo());
+            NuevaSolicitud nueva = mapper.aNuevaSolicitud(request);
+            Solicitud s = solicitudService.registrar(nueva);
+            return ResponseEntity.status(HttpStatus.CREATED).body(mapper.aMap(s));
+    ```
+  - `aplicacion/SolicitudService.java:37-100` — `registrar`, `obtener`, `buscar`, `cambiarEstado` y `asignarResponsable`; las reglas ya estaban en el dominio (R03/R04) y ahora el service solo orquesta.
+  - Inyección **por constructor** en las clases nuevas y en el controller adelgazado (`SolicitudService`, `SolicitudMapper`), en lugar de `@Autowired` en campos.
+  - `@Transactional` se movió del controller a los services (`@Service @Transactional`): la transacción pertenece a la capa de aplicación.
+  - El reporte pasó a `ReporteService.resumen()`, que devuelve un `ReporteResumen` con `EnumMap`; el mapper lo convierte al mismo JSON (`porEstado` y `porTipo` en el orden del contrato).
+- **Decisión técnica clave — `@EntityGraph` en `SolicitudRepository`:** al sacar la transacción del controller, el mapper lee `responsable` (que es `LAZY` por contrato) con la transacción ya cerrada (`spring.jpa.open-in-view=false`). Para evitar `LazyInitializationException`, `findById` y `findAll` de `SolicitudRepository` se sobrescriben con `@EntityGraph(attributePaths = { "estudiante", "responsable" })`, de modo que la solicitud llega al mapper con sus asociaciones cargadas. La entidad sigue siendo `LAZY`.
+- **Hallazgo durante la verificación:** los 16 tests pasaban, pero **no detectan este problema**, porque cada test corre dentro de una transacción con rollback y la sesión nunca se cierra. Con la app levantada, la primera versión (`attributePaths = "responsable"` solamente) devolvió `500 Could not initialize proxy [Estudiante#2] - no session` en `GET /api/solicitudes/{id}`: un `@EntityGraph` de tipo `FETCH` (el predeterminado) trata como `LAZY` cualquier atributo que no esté en el grafo, incluido `estudiante`, que era `EAGER`. Se corrigió incluyendo `estudiante` y `responsable` en el grafo y se volvió a verificar por HTTP (`GET` de una solicitud con y sin responsable, listados filtrados, `PATCH` de estado y de responsable, `POST` y errores 404/409): todas las respuestas 200/201/404/409 correctas y 0 errores de sesión en el log.
+- **Comprobación en Swagger:** `GET /v3/api-docs` agrupa ahora los endpoints así: `solicitud-controller` (los 5 de `/api/solicitudes`), `reporte-controller` (`/api/reportes/resumen`) y `soporte-controller` (`/api/estudiantes`, `/api/responsables`). En `01-swagger-endpoints.png` (v1) el reporte figuraba dentro de `solicitud-controller`.
+- **Pasos seguros aplicados:**
+  1. Crear `ReporteService`/`ReporteController` y mover primero el reporte (lo más independiente).
+  2. Crear `SolicitudMapper` y mover el mapeo y las conversiones de entrada (`aNuevaSolicitud`, `aTipo`, `aEstado`, `aPrioridad`).
+  3. Crear `SolicitudService` y mover un caso de uso por vez, conservando el orden de chequeos (para `cambiarEstado`, el service recibe el estado como texto porque el orden `404 → 400` forma parte del contrato).
+  4. Reducir el controller a delegación y mover `@Transactional` a los services.
+  5. Probar por HTTP además de `mvnw test`.
+- **Cambios de comportamiento aceptados:** el endpoint de reporte ya no captura `Exception` (no tiene errores de negocio posibles); una falla inesperada devolvería el 500 genérico de Spring en lugar de texto plano. No hay entrada válida que cambie de resultado.
+- **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0` + verificación por HTTP descripta arriba.
+- **Fuera de alcance de la parte A:** `catch (Exception)` y el parseo de `"404|..."` (R07); `new NotificadorConsola()`, `LocalDateTime.now()`, `Utils` (R08); `System.out`, nombres cortos y el bloque comentado (R09); `SoporteController` sigue con `@Autowired` y mapeo propio.
+- **Commit:** _(se completa al terminar la tanda)_

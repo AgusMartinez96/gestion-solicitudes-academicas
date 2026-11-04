@@ -1,0 +1,64 @@
+package ar.edu.utn.tup.solicitudes.aplicacion;
+
+import java.time.LocalDateTime;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import ar.edu.utn.tup.solicitudes.model.EstadoSolicitud;
+import ar.edu.utn.tup.solicitudes.model.Solicitud;
+import ar.edu.utn.tup.solicitudes.model.TipoSolicitud;
+import ar.edu.utn.tup.solicitudes.repository.SolicitudRepository;
+
+@Service
+@Transactional
+public class ReporteService {
+
+    private final SolicitudRepository solicitudRepository;
+
+    public ReporteService(SolicitudRepository solicitudRepository) {
+        this.solicitudRepository = solicitudRepository;
+    }
+
+    public ReporteResumen resumen() {
+        List<Solicitud> todas = solicitudRepository.findAll();
+        return new ReporteResumen(todas.size(), contarPorEstado(todas), contarPorTipo(todas),
+                contarVencidas(todas));
+    }
+
+    private Map<EstadoSolicitud, Integer> contarPorEstado(List<Solicitud> todas) {
+        Map<EstadoSolicitud, Integer> porEstado = new EnumMap<>(EstadoSolicitud.class);
+        for (EstadoSolicitud estado : EstadoSolicitud.values()) {
+            porEstado.put(estado, 0);
+        }
+        for (Solicitud s : todas) {
+            porEstado.put(s.getEstado(), porEstado.get(s.getEstado()) + 1);
+        }
+        return porEstado;
+    }
+
+    private Map<TipoSolicitud, Integer> contarPorTipo(List<Solicitud> todas) {
+        Map<TipoSolicitud, Integer> porTipo = new EnumMap<>(TipoSolicitud.class);
+        for (TipoSolicitud tipo : TipoSolicitud.values()) {
+            porTipo.put(tipo, 0);
+        }
+        for (Solicitud s : todas) {
+            porTipo.put(s.getTipo(), porTipo.get(s.getTipo()) + 1);
+        }
+        return porTipo;
+    }
+
+    private int contarVencidas(List<Solicitud> todas) {
+        int vencidas = 0;
+        LocalDateTime ahora = LocalDateTime.now();
+        for (Solicitud s : todas) {
+            if (s.estaVencida(ahora)) {
+                vencidas++;
+            }
+        }
+        return vencidas;
+    }
+}
