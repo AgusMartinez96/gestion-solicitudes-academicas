@@ -150,12 +150,18 @@ La lectura honesta es que **la heurística no falla: mide otra cosa**. TCC mide 
   res.put("vencida", !(s.getEstado().equals("RESUELTA") || s.getEstado().equals("RECHAZADA")
           || s.getEstado().equals("CANCELADA")) && s.getFechaVencimiento().isBefore(LocalDateTime.now()));
   ```
-- **Evidencia 2 — el chequeo "solicitud cerrada", copiado 7 veces** (`SC:104-105`, `141-142`, `205-206`, `265-266`, `323-324` dentro del mapeo; `SC:294-295` en `asignarResponsable`; `SC:375-376` en `reporte`):
+- **Evidencia 2 — la condición "solicitud cerrada", copiada 7 veces.** La condición repetida es siempre la misma:
   ```java
-  if (s.getEstado().equals("RESUELTA") || s.getEstado().equals("RECHAZADA")
-          || s.getEstado().equals("CANCELADA")) {
-      throw new RuntimeException("409|La solicitud está cerrada: " + id);
+  s.getEstado().equals("RESUELTA") || s.getEstado().equals("RECHAZADA")
+          || s.getEstado().equals("CANCELADA")
   ```
+  Lo que cambia es el contexto en el que aparece cada copia:
+
+  | Copias | Ubicación | Contexto |
+  |---|---|---|
+  | 5 | `SC:104-105`, `141-142`, `205-206`, `265-266`, `323-324` | Dentro del cálculo de `vencida` del bloque de mapeo (S03, evidencia 1), negada: `!(...) && s.getFechaVencimiento().isBefore(LocalDateTime.now())`. |
+  | 1 | `SC:294-295` | En `asignarResponsable`, como `if (...)` que lanza `new RuntimeException("409|La solicitud está cerrada: " + id)` (`SC:296`). Es la única copia con `throw`. |
+  | 1 | `SC:375-376` | En `reporte`, como `if (!(...))` para contar las vencidas, sin `throw`. |
 - **Evidencia 3 — mapeo duplicado en `SoC`:** `SoC:29-35` (estudiantes) y `SoC:43-49` (responsables) repiten el patrón `Map` + `put` campo por campo.
 - **Impacto:** un campo nuevo en el JSON obliga a editar 5 bloques; un estado cerrado nuevo, 7 condiciones. Olvidar uno produce respuestas inconsistentes entre endpoints.
 - **Riesgo de mantenimiento:** Alto. **Prioridad:** Alta.
