@@ -51,28 +51,12 @@ public class SolicitudController {
             String descripcion = (String) body.get("descripcion");
             String prioridad = (String) body.get("prioridad");
             System.out.println("DEBUG crear solicitud legajo=" + legajo + " tipo=" + tipo);
-            if (descripcion == null || descripcion.length() < 10 || descripcion.length() > 500) {
-                throw new RuntimeException("400|La descripción debe tener entre 10 y 500 caracteres");
-            }
-            if (tipo == null || !(tipo.equals("CERTIFICADO_ALUMNO_REGULAR") || tipo.equals("REVISION_EXAMEN")
-                    || tipo.equals("EQUIVALENCIA") || tipo.equals("CAMBIO_COMISION") || tipo.equals("OTRO"))) {
-                throw new RuntimeException("400|Tipo de solicitud inválido: " + tipo);
-            }
-            if (prioridad == null) {
-                if (tipo.equals("REVISION_EXAMEN")) {
-                    prioridad = "ALTA";
-                } else if (tipo.equals("CAMBIO_COMISION") || tipo.equals("CERTIFICADO_ALUMNO_REGULAR")) {
-                    prioridad = "MEDIA";
-                } else {
-                    prioridad = "BAJA";
-                }
-            }
+            validarDescripcion(descripcion);
+            validarTipo(tipo);
+            prioridad = resolverPrioridad(tipo, prioridad);
             Utils.validar(descripcion, tipo, prioridad, legajo);
-            Estudiante est = estudianteRepository.findByLegajo(legajo).orElse(null);
-            if (est == null) {
-                throw new RuntimeException("404|Estudiante no encontrado: " + legajo);
-            }
-            LocalDateTime ahora = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+            Estudiante est = buscarEstudiante(legajo);
+            LocalDateTime ahora = ahoraTruncado();
             // int dias = 2;
             // if (tipo.equals("REVISION_EXAMEN")) {
             //     dias = 5;
@@ -82,41 +66,10 @@ public class SolicitudController {
             // if (prioridad.equals("ALTA")) {
             //     dias = dias - 1;
             // }
-            int dias = Utils.calcularDias(tipo);
-            if (prioridad.equals("ALTA")) {
-                dias = dias / 2;
-                if (dias < 1) {
-                    dias = 1;
-                }
-            }
+            int dias = calcularPlazoDias(tipo, prioridad);
             Solicitud s = armarSolicitud(legajo, tipo, descripcion, prioridad, ahora, dias, est);
             s = solicitudRepository.save(s);
-
-            Map<String, Object> res = new LinkedHashMap<>();
-            res.put("id", s.getId());
-            res.put("tipo", s.getTipo());
-            res.put("descripcion", s.getDescripcion());
-            res.put("prioridad", s.getPrioridad());
-            res.put("estado", s.getEstado());
-            res.put("fechaCreacion", s.getFechaCreacion());
-            res.put("fechaVencimiento", s.getFechaVencimiento());
-            res.put("fechaActualizacion", s.getFechaActualizacion());
-            res.put("vencida", !(s.getEstado().equals("RESUELTA") || s.getEstado().equals("RECHAZADA")
-                    || s.getEstado().equals("CANCELADA")) && s.getFechaVencimiento().isBefore(LocalDateTime.now()));
-            Map<String, Object> e = new LinkedHashMap<>();
-            e.put("legajo", s.getEstudiante().getLegajo());
-            e.put("nombre", s.getEstudiante().getNombre());
-            res.put("estudiante", e);
-            if (s.getResponsable() != null) {
-                Map<String, Object> r = new LinkedHashMap<>();
-                r.put("id", s.getResponsable().getId());
-                r.put("nombre", s.getResponsable().getNombre());
-                r.put("area", s.getResponsable().getArea());
-                res.put("responsable", r);
-            } else {
-                res.put("responsable", null);
-            }
-            return ResponseEntity.status(HttpStatus.CREATED).body(res);
+            return ResponseEntity.status(HttpStatus.CREATED).body(aMap(s));
         } catch (Exception e) {
             return procesar(e);
         }
@@ -125,35 +78,8 @@ public class SolicitudController {
     @GetMapping("/api/solicitudes/{id}")
     public ResponseEntity<Object> obtener(@PathVariable("id") Long id) {
         try {
-            Solicitud s = solicitudRepository.findById(id).orElse(null);
-            if (s == null) {
-                throw new RuntimeException("404|Solicitud no encontrada: " + id);
-            }
-            Map<String, Object> res = new LinkedHashMap<>();
-            res.put("id", s.getId());
-            res.put("tipo", s.getTipo());
-            res.put("descripcion", s.getDescripcion());
-            res.put("prioridad", s.getPrioridad());
-            res.put("estado", s.getEstado());
-            res.put("fechaCreacion", s.getFechaCreacion());
-            res.put("fechaVencimiento", s.getFechaVencimiento());
-            res.put("fechaActualizacion", s.getFechaActualizacion());
-            res.put("vencida", !(s.getEstado().equals("RESUELTA") || s.getEstado().equals("RECHAZADA")
-                    || s.getEstado().equals("CANCELADA")) && s.getFechaVencimiento().isBefore(LocalDateTime.now()));
-            Map<String, Object> e = new LinkedHashMap<>();
-            e.put("legajo", s.getEstudiante().getLegajo());
-            e.put("nombre", s.getEstudiante().getNombre());
-            res.put("estudiante", e);
-            if (s.getResponsable() != null) {
-                Map<String, Object> r = new LinkedHashMap<>();
-                r.put("id", s.getResponsable().getId());
-                r.put("nombre", s.getResponsable().getNombre());
-                r.put("area", s.getResponsable().getArea());
-                res.put("responsable", r);
-            } else {
-                res.put("responsable", null);
-            }
-            return ResponseEntity.ok(res);
+            Solicitud s = buscarSolicitud(id);
+            return ResponseEntity.ok(aMap(s));
         } catch (Exception e) {
             return procesar(e);
         }
@@ -165,59 +91,12 @@ public class SolicitudController {
             @RequestParam(name = "prioridad", required = false) String prioridad,
             @RequestParam(name = "legajo", required = false) String legajo) {
         try {
-            if (estado != null && !(estado.equals("PENDIENTE") || estado.equals("EN_ANALISIS")
-                    || estado.equals("RESUELTA") || estado.equals("RECHAZADA") || estado.equals("CANCELADA"))) {
-                throw new RuntimeException("400|Estado inválido: " + estado);
-            }
-            if (tipo != null && !(tipo.equals("CERTIFICADO_ALUMNO_REGULAR") || tipo.equals("REVISION_EXAMEN")
-                    || tipo.equals("EQUIVALENCIA") || tipo.equals("CAMBIO_COMISION") || tipo.equals("OTRO"))) {
-                throw new RuntimeException("400|Tipo de solicitud inválido: " + tipo);
-            }
-            if (prioridad != null
-                    && !(prioridad.equals("BAJA") || prioridad.equals("MEDIA") || prioridad.equals("ALTA"))) {
-                throw new RuntimeException("400|Prioridad inválida: " + prioridad);
-            }
-            List<Solicitud> lista = solicitudRepository.findAll();
-            List<Solicitud> lista2 = new ArrayList<>();
-            for (Solicitud s : lista) {
-                if (estado == null || s.getEstado().equals(estado)) {
-                    if (tipo == null || s.getTipo().equals(tipo)) {
-                        if (prioridad == null || s.getPrioridad().equals(prioridad)) {
-                            if (legajo == null || s.getEstudiante().getLegajo().equals(legajo)) {
-                                lista2.add(s);
-                            }
-                        }
-                    }
-                }
-            }
+            validarFiltros(estado, tipo, prioridad);
+            List<Solicitud> lista2 = filtrar(estado, tipo, prioridad, legajo);
             lista2.sort(Comparator.comparing(Solicitud::getId));
             List<Map<String, Object>> salida = new ArrayList<>();
             for (Solicitud s : lista2) {
-                Map<String, Object> aux = new LinkedHashMap<>();
-                aux.put("id", s.getId());
-                aux.put("tipo", s.getTipo());
-                aux.put("descripcion", s.getDescripcion());
-                aux.put("prioridad", s.getPrioridad());
-                aux.put("estado", s.getEstado());
-                aux.put("fechaCreacion", s.getFechaCreacion());
-                aux.put("fechaVencimiento", s.getFechaVencimiento());
-                aux.put("fechaActualizacion", s.getFechaActualizacion());
-                aux.put("vencida", !(s.getEstado().equals("RESUELTA") || s.getEstado().equals("RECHAZADA")
-                        || s.getEstado().equals("CANCELADA")) && s.getFechaVencimiento().isBefore(LocalDateTime.now()));
-                Map<String, Object> e = new LinkedHashMap<>();
-                e.put("legajo", s.getEstudiante().getLegajo());
-                e.put("nombre", s.getEstudiante().getNombre());
-                aux.put("estudiante", e);
-                if (s.getResponsable() != null) {
-                    Map<String, Object> r = new LinkedHashMap<>();
-                    r.put("id", s.getResponsable().getId());
-                    r.put("nombre", s.getResponsable().getNombre());
-                    r.put("area", s.getResponsable().getArea());
-                    aux.put("responsable", r);
-                } else {
-                    aux.put("responsable", null);
-                }
-                salida.add(aux);
+                salida.add(aMap(s));
             }
             return ResponseEntity.ok(salida);
         } catch (Exception e) {
@@ -229,15 +108,9 @@ public class SolicitudController {
     public ResponseEntity<Object> cambiarEstado(@PathVariable("id") Long id,
             @RequestBody Map<String, Object> body) {
         try {
-            Solicitud s = solicitudRepository.findById(id).orElse(null);
-            if (s == null) {
-                throw new RuntimeException("404|Solicitud no encontrada: " + id);
-            }
+            Solicitud s = buscarSolicitud(id);
             String nuevo = (String) body.get("estado");
-            if (nuevo == null || !(nuevo.equals("PENDIENTE") || nuevo.equals("EN_ANALISIS")
-                    || nuevo.equals("RESUELTA") || nuevo.equals("RECHAZADA") || nuevo.equals("CANCELADA"))) {
-                throw new RuntimeException("400|Estado inválido: " + nuevo);
-            }
+            validarEstado(nuevo);
             if (!puedeCambiar(s, nuevo)) {
                 throw new RuntimeException("409|Transición inválida: " + s.getEstado() + " -> " + nuevo);
             }
@@ -246,38 +119,13 @@ public class SolicitudController {
                         "409|La solicitud requiere un responsable asignado para pasar a " + nuevo);
             }
             s.setEstado(nuevo);
-            s.setFechaActualizacion(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+            s.setFechaActualizacion(ahoraTruncado());
             s = solicitudRepository.save(s);
             if (s.getEstado().equals("RESUELTA") || s.getEstado().equals("RECHAZADA")) {
                 new NotificadorConsola().notificar(s.getEstudiante().getEmail(),
                         "Su solicitud " + s.getId() + " fue " + s.getEstado());
             }
-
-            Map<String, Object> res = new LinkedHashMap<>();
-            res.put("id", s.getId());
-            res.put("tipo", s.getTipo());
-            res.put("descripcion", s.getDescripcion());
-            res.put("prioridad", s.getPrioridad());
-            res.put("estado", s.getEstado());
-            res.put("fechaCreacion", s.getFechaCreacion());
-            res.put("fechaVencimiento", s.getFechaVencimiento());
-            res.put("fechaActualizacion", s.getFechaActualizacion());
-            res.put("vencida", !(s.getEstado().equals("RESUELTA") || s.getEstado().equals("RECHAZADA")
-                    || s.getEstado().equals("CANCELADA")) && s.getFechaVencimiento().isBefore(LocalDateTime.now()));
-            Map<String, Object> e = new LinkedHashMap<>();
-            e.put("legajo", s.getEstudiante().getLegajo());
-            e.put("nombre", s.getEstudiante().getNombre());
-            res.put("estudiante", e);
-            if (s.getResponsable() != null) {
-                Map<String, Object> r = new LinkedHashMap<>();
-                r.put("id", s.getResponsable().getId());
-                r.put("nombre", s.getResponsable().getNombre());
-                r.put("area", s.getResponsable().getArea());
-                res.put("responsable", r);
-            } else {
-                res.put("responsable", null);
-            }
-            return ResponseEntity.ok(res);
+            return ResponseEntity.ok(aMap(s));
         } catch (Exception e) {
             return procesar(e);
         }
@@ -287,55 +135,20 @@ public class SolicitudController {
     public ResponseEntity<Object> asignarResponsable(@PathVariable("id") Long id,
             @RequestBody Map<String, Object> body) {
         try {
-            Solicitud s = solicitudRepository.findById(id).orElse(null);
-            if (s == null) {
-                throw new RuntimeException("404|Solicitud no encontrada: " + id);
-            }
-            if (s.getEstado().equals("RESUELTA") || s.getEstado().equals("RECHAZADA")
-                    || s.getEstado().equals("CANCELADA")) {
+            Solicitud s = buscarSolicitud(id);
+            if (estaCerrada(s)) {
                 throw new RuntimeException("409|La solicitud está cerrada: " + id);
             }
             Object dato = body.get("responsableId");
             Long idResp = dato == null ? null : Long.valueOf(dato.toString());
-            Responsable resp = idResp == null ? null : responsableRepository.findById(idResp).orElse(null);
-            if (resp == null) {
-                throw new RuntimeException("404|Responsable no encontrado: " + idResp);
-            }
-            if (!resp.isActivo()) {
-                throw new RuntimeException("409|El responsable no está activo: " + idResp);
-            }
+            Responsable resp = buscarResponsableActivo(idResp);
             s.setResponsable(resp);
             if (s.getEstado().equals("PENDIENTE")) {
                 s.setEstado("EN_ANALISIS");
-                s.setFechaActualizacion(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+                s.setFechaActualizacion(ahoraTruncado());
             }
             s = solicitudRepository.save(s);
-
-            Map<String, Object> res = new LinkedHashMap<>();
-            res.put("id", s.getId());
-            res.put("tipo", s.getTipo());
-            res.put("descripcion", s.getDescripcion());
-            res.put("prioridad", s.getPrioridad());
-            res.put("estado", s.getEstado());
-            res.put("fechaCreacion", s.getFechaCreacion());
-            res.put("fechaVencimiento", s.getFechaVencimiento());
-            res.put("fechaActualizacion", s.getFechaActualizacion());
-            res.put("vencida", !(s.getEstado().equals("RESUELTA") || s.getEstado().equals("RECHAZADA")
-                    || s.getEstado().equals("CANCELADA")) && s.getFechaVencimiento().isBefore(LocalDateTime.now()));
-            Map<String, Object> e = new LinkedHashMap<>();
-            e.put("legajo", s.getEstudiante().getLegajo());
-            e.put("nombre", s.getEstudiante().getNombre());
-            res.put("estudiante", e);
-            if (s.getResponsable() != null) {
-                Map<String, Object> r = new LinkedHashMap<>();
-                r.put("id", s.getResponsable().getId());
-                r.put("nombre", s.getResponsable().getNombre());
-                r.put("area", s.getResponsable().getArea());
-                res.put("responsable", r);
-            } else {
-                res.put("responsable", null);
-            }
-            return ResponseEntity.ok(res);
+            return ResponseEntity.ok(aMap(s));
         } catch (Exception e) {
             return procesar(e);
         }
@@ -347,43 +160,198 @@ public class SolicitudController {
             List<Solicitud> todas = solicitudRepository.findAll();
             Map<String, Object> res = new LinkedHashMap<>();
             res.put("total", todas.size());
-
-            Map<String, Integer> porEstado = new LinkedHashMap<>();
-            porEstado.put("PENDIENTE", 0);
-            porEstado.put("EN_ANALISIS", 0);
-            porEstado.put("RESUELTA", 0);
-            porEstado.put("RECHAZADA", 0);
-            porEstado.put("CANCELADA", 0);
-            for (Solicitud s : todas) {
-                porEstado.put(s.getEstado(), porEstado.get(s.getEstado()) + 1);
-            }
-            res.put("porEstado", porEstado);
-
-            Map<String, Integer> porTipo = new LinkedHashMap<>();
-            porTipo.put("CERTIFICADO_ALUMNO_REGULAR", 0);
-            porTipo.put("REVISION_EXAMEN", 0);
-            porTipo.put("EQUIVALENCIA", 0);
-            porTipo.put("CAMBIO_COMISION", 0);
-            porTipo.put("OTRO", 0);
-            for (Solicitud s : todas) {
-                porTipo.put(s.getTipo(), porTipo.get(s.getTipo()) + 1);
-            }
-            res.put("porTipo", porTipo);
-
-            int vencidas = 0;
-            for (Solicitud s : todas) {
-                if (!(s.getEstado().equals("RESUELTA") || s.getEstado().equals("RECHAZADA")
-                        || s.getEstado().equals("CANCELADA"))) {
-                    if (s.getFechaVencimiento().isBefore(LocalDateTime.now())) {
-                        vencidas++;
-                    }
-                }
-            }
-            res.put("vencidas", vencidas);
+            res.put("porEstado", contarPorEstado(todas));
+            res.put("porTipo", contarPorTipo(todas));
+            res.put("vencidas", contarVencidas(todas));
             return ResponseEntity.ok(res);
         } catch (Exception e) {
             return procesar(e);
         }
+    }
+
+    private Map<String, Integer> contarPorEstado(List<Solicitud> todas) {
+        Map<String, Integer> porEstado = new LinkedHashMap<>();
+        porEstado.put("PENDIENTE", 0);
+        porEstado.put("EN_ANALISIS", 0);
+        porEstado.put("RESUELTA", 0);
+        porEstado.put("RECHAZADA", 0);
+        porEstado.put("CANCELADA", 0);
+        for (Solicitud s : todas) {
+            porEstado.put(s.getEstado(), porEstado.get(s.getEstado()) + 1);
+        }
+        return porEstado;
+    }
+
+    private Map<String, Integer> contarPorTipo(List<Solicitud> todas) {
+        Map<String, Integer> porTipo = new LinkedHashMap<>();
+        porTipo.put("CERTIFICADO_ALUMNO_REGULAR", 0);
+        porTipo.put("REVISION_EXAMEN", 0);
+        porTipo.put("EQUIVALENCIA", 0);
+        porTipo.put("CAMBIO_COMISION", 0);
+        porTipo.put("OTRO", 0);
+        for (Solicitud s : todas) {
+            porTipo.put(s.getTipo(), porTipo.get(s.getTipo()) + 1);
+        }
+        return porTipo;
+    }
+
+    private int contarVencidas(List<Solicitud> todas) {
+        int vencidas = 0;
+        for (Solicitud s : todas) {
+            if (!estaCerrada(s) && s.getFechaVencimiento().isBefore(LocalDateTime.now())) {
+                vencidas++;
+            }
+        }
+        return vencidas;
+    }
+
+    private Solicitud buscarSolicitud(Long id) {
+        Solicitud s = solicitudRepository.findById(id).orElse(null);
+        if (s == null) {
+            throw new RuntimeException("404|Solicitud no encontrada: " + id);
+        }
+        return s;
+    }
+
+    private Estudiante buscarEstudiante(String legajo) {
+        Estudiante est = estudianteRepository.findByLegajo(legajo).orElse(null);
+        if (est == null) {
+            throw new RuntimeException("404|Estudiante no encontrado: " + legajo);
+        }
+        return est;
+    }
+
+    private Responsable buscarResponsableActivo(Long idResp) {
+        Responsable resp = idResp == null ? null : responsableRepository.findById(idResp).orElse(null);
+        if (resp == null) {
+            throw new RuntimeException("404|Responsable no encontrado: " + idResp);
+        }
+        if (!resp.isActivo()) {
+            throw new RuntimeException("409|El responsable no está activo: " + idResp);
+        }
+        return resp;
+    }
+
+    private void validarDescripcion(String descripcion) {
+        if (descripcion == null || descripcion.length() < 10 || descripcion.length() > 500) {
+            throw new RuntimeException("400|La descripción debe tener entre 10 y 500 caracteres");
+        }
+    }
+
+    private void validarTipo(String tipo) {
+        if (tipo == null || !(tipo.equals("CERTIFICADO_ALUMNO_REGULAR") || tipo.equals("REVISION_EXAMEN")
+                || tipo.equals("EQUIVALENCIA") || tipo.equals("CAMBIO_COMISION") || tipo.equals("OTRO"))) {
+            throw new RuntimeException("400|Tipo de solicitud inválido: " + tipo);
+        }
+    }
+
+    private void validarEstado(String estado) {
+        if (estado == null || !(estado.equals("PENDIENTE") || estado.equals("EN_ANALISIS")
+                || estado.equals("RESUELTA") || estado.equals("RECHAZADA") || estado.equals("CANCELADA"))) {
+            throw new RuntimeException("400|Estado inválido: " + estado);
+        }
+    }
+
+    private void validarPrioridad(String prioridad) {
+        if (prioridad == null || !(prioridad.equals("BAJA") || prioridad.equals("MEDIA") || prioridad.equals("ALTA"))) {
+            throw new RuntimeException("400|Prioridad inválida: " + prioridad);
+        }
+    }
+
+    private void validarFiltros(String estado, String tipo, String prioridad) {
+        if (estado != null) {
+            validarEstado(estado);
+        }
+        if (tipo != null) {
+            validarTipo(tipo);
+        }
+        if (prioridad != null) {
+            validarPrioridad(prioridad);
+        }
+    }
+
+    private String resolverPrioridad(String tipo, String prioridad) {
+        if (prioridad != null) {
+            return prioridad;
+        }
+        if (tipo.equals("REVISION_EXAMEN")) {
+            return "ALTA";
+        }
+        if (tipo.equals("CAMBIO_COMISION") || tipo.equals("CERTIFICADO_ALUMNO_REGULAR")) {
+            return "MEDIA";
+        }
+        return "BAJA";
+    }
+
+    private int calcularPlazoDias(String tipo, String prioridad) {
+        int dias = Utils.calcularDias(tipo);
+        if (prioridad.equals("ALTA")) {
+            dias = dias / 2;
+            if (dias < 1) {
+                dias = 1;
+            }
+        }
+        return dias;
+    }
+
+    private List<Solicitud> filtrar(String estado, String tipo, String prioridad, String legajo) {
+        List<Solicitud> lista = solicitudRepository.findAll();
+        List<Solicitud> lista2 = new ArrayList<>();
+        for (Solicitud s : lista) {
+            if (estado == null || s.getEstado().equals(estado)) {
+                if (tipo == null || s.getTipo().equals(tipo)) {
+                    if (prioridad == null || s.getPrioridad().equals(prioridad)) {
+                        if (legajo == null || s.getEstudiante().getLegajo().equals(legajo)) {
+                            lista2.add(s);
+                        }
+                    }
+                }
+            }
+        }
+        return lista2;
+    }
+
+    private LocalDateTime ahoraTruncado() {
+        return LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+    }
+
+    private boolean estaCerrada(Solicitud s) {
+        return s.getEstado().equals("RESUELTA") || s.getEstado().equals("RECHAZADA")
+                || s.getEstado().equals("CANCELADA");
+    }
+
+    private Map<String, Object> aMap(Solicitud s) {
+        Map<String, Object> res = new LinkedHashMap<>();
+        res.put("id", s.getId());
+        res.put("tipo", s.getTipo());
+        res.put("descripcion", s.getDescripcion());
+        res.put("prioridad", s.getPrioridad());
+        res.put("estado", s.getEstado());
+        res.put("fechaCreacion", s.getFechaCreacion());
+        res.put("fechaVencimiento", s.getFechaVencimiento());
+        res.put("fechaActualizacion", s.getFechaActualizacion());
+        res.put("vencida", !estaCerrada(s) && s.getFechaVencimiento().isBefore(LocalDateTime.now()));
+        res.put("estudiante", aMapEstudiante(s.getEstudiante()));
+        res.put("responsable", aMapResponsable(s.getResponsable()));
+        return res;
+    }
+
+    private Map<String, Object> aMapEstudiante(Estudiante est) {
+        Map<String, Object> e = new LinkedHashMap<>();
+        e.put("legajo", est.getLegajo());
+        e.put("nombre", est.getNombre());
+        return e;
+    }
+
+    private Map<String, Object> aMapResponsable(Responsable resp) {
+        if (resp == null) {
+            return null;
+        }
+        Map<String, Object> r = new LinkedHashMap<>();
+        r.put("id", resp.getId());
+        r.put("nombre", resp.getNombre());
+        r.put("area", resp.getArea());
+        return r;
     }
 
     private boolean puedeCambiar(Solicitud s, String nuevo) {
