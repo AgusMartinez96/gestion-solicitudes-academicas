@@ -61,3 +61,55 @@
 - **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`.
 - **Fuera de alcance de R01 (se resuelve en otros refactorings):** los `String` de estado/tipo/prioridad (R02), `puedeCambiar` y las reglas en la entidad (R03), `armarSolicitud` de 7 parámetros (R05), `catch (Exception)` (R07), `Utils`/`NotificadorConsola`/`now()` (R08), `System.out`, nombres cortos y el bloque comentado (R09).
 - **Commit:** _(se completa al terminar la tanda)_
+
+---
+
+## R02 — Replace Type Code with Enum
+
+- **Smell(s):** S04 (Primitive Obsession / Magic Strings) · **Principio:** Clean Code (tipado fuerte, nombres con significado) y base para OCP (R04).
+- **Motivación:** `estado`, `tipo` y `prioridad` eran `String`. Cualquier error de tipeo compilaba y fallaba en ejecución, y la lista de valores válidos estaba copiada en cadenas de `equals`.
+- **Antes:**
+  - `model/Solicitud.java:22, 28, 31` (`estado-inicial`):
+    ```java
+    private String tipo;
+    private String prioridad;
+    private String estado;
+    ```
+  - Cadenas de `equals` sobre los tres valores, por ejemplo `validarTipo` (`SC:241-246` en el commit de R01):
+    ```java
+    if (tipo == null || !(tipo.equals("CERTIFICADO_ALUMNO_REGULAR") || tipo.equals("REVISION_EXAMEN")
+            || tipo.equals("EQUIVALENCIA") || tipo.equals("CAMBIO_COMISION") || tipo.equals("OTRO"))) {
+    ```
+  - Literales de estado/tipo/prioridad en `controller/` y `util/` (medición de la Fase 3): **49 / 30 / 11**.
+- **Después:**
+  - Tres enums nuevos en `model/`: `EstadoSolicitud` (`PENDIENTE, EN_ANALISIS, RESUELTA, RECHAZADA, CANCELADA`), `TipoSolicitud` y `Prioridad`, cada uno con `desde(String)` que devuelve `Optional`. Las constantes están declaradas en el mismo orden que exige el contrato del reporte.
+  - `model/Solicitud.java:26-42` — los campos son enums persistidos como texto:
+    ```java
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(nullable = false, length = 40)
+    private TipoSolicitud tipo;
+    ```
+  - `SC:242-255` — `parsearTipo`, `parsearEstado` y `parsearPrioridad` reemplazan a las tres cadenas de `equals`:
+    ```java
+    private TipoSolicitud parsearTipo(String texto) {
+        return TipoSolicitud.desde(texto)
+                .orElseThrow(() -> new RuntimeException("400|Tipo de solicitud inválido: " + texto));
+    }
+    ```
+  - `SC:303-306` y `SC:342-354` — `estaCerrada` y `puedeCambiar` comparan con `==` contra constantes del enum.
+  - `SC:177-197` — `contarPorEstado` y `contarPorTipo` inicializan los contadores recorriendo `values()`, así que ya no repiten los nombres a mano.
+  - `SC:308-322` — `aMap` serializa con `.name()`, por lo que el JSON es idéntico.
+  - Literales de estado/tipo/prioridad en `controller/` y `util/`: **0 / 12 / 4**. Los restantes están en `Utils` (`calcularDias`, `validar`) y en el bloque comentado; desaparecen en R04, R08 y R09.
+- **Cómo se preserva la base y el JSON:**
+  - `@Enumerated(EnumType.STRING)` guarda el nombre de la constante, el mismo texto que antes; `data.sql` no cambió.
+  - **Hallazgo:** con Hibernate 7 sobre H2, `@Enumerated(EnumType.STRING)` por sí solo genera columnas `enum (...)` nativas en lugar de `varchar`, lo que cambiaba el esquema del contrato (`docs/05-esquema-backend.md` §1: `VARCHAR`). Se agregó `@JdbcTypeCode(SqlTypes.VARCHAR)` para forzar `varchar(40/10/20)`. Se verificó con `logging.level.org.hibernate.SQL=DEBUG` (`tipo varchar(40) not null`, `prioridad varchar(10) not null`, `estado varchar(20) not null`). Hibernate agrega además un `CHECK (... in (...))` por columna, que antes no existía: es una restricción nueva e inocua, porque los únicos valores posibles son los del enum.
+  - El JSON no cambia porque `aMap` sigue publicando `String` (`.name()`), y los mensajes de error usan el texto original recibido.
+- **Pasos seguros aplicados:**
+  1. Crear los enums sin usarlos (compila igual).
+  2. Cambiar los tipos de los campos y de los getters/setters de `Solicitud`; el compilador marcó todos los lugares a adaptar.
+  3. Reemplazar cada comparación por `==` contra la constante y cada validación por `parsear*`, conservando el orden de evaluación (descripción → tipo → prioridad → legajo) y los mensajes.
+  4. Ejecutar los tests y revisar el DDL generado (paso que detectó el `enum` nativo).
+- **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`.
+- **Fuera de alcance de R02:** `Utils.calcularDias` y la prioridad por defecto siguen como decisiones sobre el tipo (R04); `Utils.validar` todavía recibe `String` (se elimina en R08); el enum todavía no tiene comportamiento (R03 y R04).
+- **Commit:** _(se completa al terminar la tanda)_
