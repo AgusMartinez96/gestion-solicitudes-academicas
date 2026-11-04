@@ -5,32 +5,28 @@ import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import ar.edu.utn.tup.solicitudes.persistencia.EstudianteRepository;
-import ar.edu.utn.tup.solicitudes.persistencia.ResponsableRepository;
+import ar.edu.utn.tup.solicitudes.aplicacion.ConsultaService;
 import ar.edu.utn.tup.solicitudes.web.dto.EstudianteResponse;
 import ar.edu.utn.tup.solicitudes.web.dto.ResponsableResponse;
 
 @RestController
 public class SoporteController {
 
-    private final EstudianteRepository estudianteRepository;
-    private final ResponsableRepository responsableRepository;
+    private final ConsultaService consultaService;
     private final SolicitudMapper mapper;
 
-    public SoporteController(EstudianteRepository estudianteRepository,
-            ResponsableRepository responsableRepository, SolicitudMapper mapper) {
-        this.estudianteRepository = estudianteRepository;
-        this.responsableRepository = responsableRepository;
+    public SoporteController(ConsultaService consultaService, SolicitudMapper mapper) {
+        this.consultaService = consultaService;
         this.mapper = mapper;
     }
 
     @GetMapping("/api/estudiantes")
     public List<EstudianteResponse> estudiantes() {
-        return estudianteRepository.findAll().stream().map(mapper::aResponse).toList();
+        return consultaService.estudiantes().stream().map(mapper::aResponse).toList();
     }
 
     @GetMapping("/api/responsables")
     public List<ResponsableResponse> responsables() {
-        return responsableRepository.findAll().stream().map(mapper::aResponse).toList();
+        return consultaService.responsables().stream().map(mapper::aResponse).toList();
     }
 }
