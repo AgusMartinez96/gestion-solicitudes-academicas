@@ -26,6 +26,9 @@ import ar.edu.utn.tup.solicitudes.web.dto.SolicitudResponse;
 @Component
 public class SolicitudMapper {
 
+    private static final int LONGITUD_MINIMA_DESCRIPCION = 10;
+    private static final int LONGITUD_MAXIMA_DESCRIPCION = 500;
+
     private final Clock clock;
 
     public SolicitudMapper(Clock clock) {
@@ -100,8 +103,10 @@ public class SolicitudMapper {
     }
 
     private void validarDescripcion(String descripcion) {
-        if (descripcion == null || descripcion.length() < 10 || descripcion.length() > 500) {
-            throw new DatoInvalidoException("La descripción debe tener entre 10 y 500 caracteres");
+        if (descripcion == null || descripcion.length() < LONGITUD_MINIMA_DESCRIPCION
+                || descripcion.length() > LONGITUD_MAXIMA_DESCRIPCION) {
+            throw new DatoInvalidoException("La descripción debe tener entre " + LONGITUD_MINIMA_DESCRIPCION
+                    + " y " + LONGITUD_MAXIMA_DESCRIPCION + " caracteres");
         }
     }
 }

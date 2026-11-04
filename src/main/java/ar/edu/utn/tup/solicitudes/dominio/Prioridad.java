@@ -8,9 +8,12 @@ public enum Prioridad {
     MEDIA,
     ALTA;
 
+    private static final int DIVISOR_PLAZO_ALTA = 2;
+    private static final int PLAZO_MINIMO_DIAS = 1;
+
     public int ajustarPlazo(int dias) {
         if (this == ALTA) {
-            return Math.max(1, dias / 2);
+            return Math.max(PLAZO_MINIMO_DIAS, dias / DIVISOR_PLAZO_ALTA);
         }
         return dias;
     }

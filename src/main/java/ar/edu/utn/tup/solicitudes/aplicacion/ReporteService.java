@@ -37,8 +37,8 @@ public class ReporteService {
         for (EstadoSolicitud estado : EstadoSolicitud.values()) {
             porEstado.put(estado, 0);
         }
-        for (Solicitud s : todas) {
-            porEstado.put(s.getEstado(), porEstado.get(s.getEstado()) + 1);
+        for (Solicitud solicitud : todas) {
+            porEstado.merge(solicitud.getEstado(), 1, Integer::sum);
         }
         return porEstado;
     }
@@ -48,8 +48,8 @@ public class ReporteService {
         for (TipoSolicitud tipo : TipoSolicitud.values()) {
             porTipo.put(tipo, 0);
         }
-        for (Solicitud s : todas) {
-            porTipo.put(s.getTipo(), porTipo.get(s.getTipo()) + 1);
+        for (Solicitud solicitud : todas) {
+            porTipo.merge(solicitud.getTipo(), 1, Integer::sum);
         }
         return porTipo;
     }
@@ -57,8 +57,8 @@ public class ReporteService {
     private int contarVencidas(List<Solicitud> todas) {
         int vencidas = 0;
         LocalDateTime ahora = LocalDateTime.now(clock);
-        for (Solicitud s : todas) {
-            if (s.estaVencida(ahora)) {
+        for (Solicitud solicitud : todas) {
+            if (solicitud.estaVencida(ahora)) {
                 vencidas++;
             }
         }

@@ -473,3 +473,34 @@
 - **Pasos seguros aplicados:** (1) crear `Notificador`, `NotificadorLog` y `ClockConfig` sin usarlos; (2) inyectar `Clock` en una clase por vez y reemplazar `now()`; (3) reemplazar `new NotificadorConsola()` por la interfaz inyectada; (4) reemplazar el último uso de `Utils`; (5) borrar `util/` recién cuando el compilador no marcaba referencias; (6) tests y batería HTTP.
 - **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`. Las 25 llamadas HTTP (con la app levantada) son idénticas a las de R07; la notificación aparece una vez en el log al resolver la solicitud 5.
 - **Commit:** _(se completa al terminar la tanda)_
+
+---
+
+## R09 — Rename + Replace Magic Number with Symbolic Constant + Remove Dead Code
+
+- **Smell(s):** S09 (nombres poco expresivos y números mágicos), S12 (código muerto, comentarios y `System.out`) · **Principio:** Clean Code (nombres que revelan la intención, sin números ni textos mágicos, sin código muerto).
+- **Motivación:** los nombres `s`, `est`, `resp`, `lista2` obligaban a leer el cuerpo para entender la intención; `10`, `500`, `2` y `1` no explicaban su significado; quedaban un bloque comentado de una versión vieja del cálculo del plazo y dos `System.out.println("DEBUG ...")`.
+- **Antes (a partir de `d3c1ebb`):**
+  - `SolicitudService` — `Solicitud s`, `Estudiante est`, `Responsable resp`, `List<Solicitud> lista2`, `Long id`; el bloque comentado de 9 líneas (`// int dias = 2; ...`, originalmente `SC:76-84`) y `System.out.println("DEBUG solicitud armada ...")` (originalmente `SC:413`).
+  - `SolicitudController` — `System.out.println("DEBUG crear solicitud ...")` (originalmente `SC:53`) y parámetros `Long id`.
+  - `SolicitudMapper` — `descripcion.length() < 10 || descripcion.length() > 500` y el mensaje con esos números escritos a mano (originalmente `SC:54`).
+  - `Prioridad.ajustarPlazo` — `Math.max(1, dias / 2)`.
+- **Después:**
+  - Nombres: `solicitud`, `estudiante`, `responsable`, `coincidentes` (en lugar de `lista2`), `guardada`, `nuevoEstado`/`textoEstado`, `solicitudId`/`responsableId` (en lugar de `id`/`idResp`) en el service, el controller y el repositorio. En `ReporteService` los bucles usan `solicitud` y el conteo usa `merge(clave, 1, Integer::sum)`.
+  - Constantes con nombre: `SolicitudMapper.LONGITUD_MINIMA_DESCRIPCION = 10` y `LONGITUD_MAXIMA_DESCRIPCION = 500` (el mensaje de error se arma con ellas y queda idéntico); `Prioridad.DIVISOR_PLAZO_ALTA = 2` y `PLAZO_MINIMO_DIAS = 1`.
+  - Eliminados: el bloque de código comentado y los dos `System.out.println`. `grep` en `src/main` de `System.out`, de `LocalDateTime.now()` (sin `clock`) y de líneas de comentario con código → **0 coincidencias**.
+  - `buscarSolicitud`, `buscarEstudiante` pasaron a `Optional.orElseThrow(...)`, lo que elimina el `if (x == null) throw` repetido.
+- **Constantes que se dejaron como están, y por qué:** los plazos `2, 3, 5, 7, 15` de `TipoSolicitud` son **datos de cada constante del enum** (un argumento con nombre de campo `plazoDias`), no números mágicos dispersos; extraerlos a constantes con nombre solo duplicaría el nombre del tipo. Los textos de error se mantienen en línea junto a la excepción que los lanza porque son el contrato (`docs/05-esquema-backend.md` §5.4) y cada uno aparece una sola vez.
+- **Revisión de las 28 violaciones `ShortVariable` de la v1** (`docs/tpi/03-deuda-tecnica-code-smells.md`, S09):
+
+  | Grupo en la v1 | Cantidad | Resultado |
+  |---|---|---|
+  | `s`, `e`, `r`, `m` (nombres realmente poco claros) | 19 | **Corregidos**: ya no existen (renombrados o eliminados con las clases/`Map` que los usaban). |
+  | `id` como parámetro de método (`SolicitudController`, antes `SC:126, 229, 287`) | 3 | **Corregidos**: `solicitudId`. Además se renombraron los `id` de `SolicitudService` (4) y de `SolicitudRepository.findById` (1), surgidos en R06. |
+  | `id` como campo y `setId(Long id)` en `Estudiante`, `Responsable`, `Solicitud` | 6 | **Se mantienen (falso positivo justificado)**: `id` es la convención de JPA para la clave primaria (`@Id private Long id`) y su getter/setter; renombrarlo obligaría a mapear la columna con `@Column(name = "id")` y a romper el estándar que cualquier lector de JPA espera. |
+  | `id` como componente de los records de respuesta (`SolicitudResponse`, `EstudianteResponse`, `ResponsableResponse`, `ResponsableResumen`) | 4 | **Se mantienen (falso positivo justificado)**: el nombre del componente es el nombre del campo JSON `"id"` que fija el contrato (`docs/05-esquema-backend.md` §5); renombrarlo cambiaría el contrato o exigiría `@JsonProperty("id")`. |
+
+  Resultado: **10** violaciones `ShortVariable`, todas sobre `id`, justificadas arriba. No se modificó `config/pmd/ruleset.xml` para ocultarlas.
+- **Pasos seguros aplicados:** (1) reemplazar cada nombre y cada número de a uno y compilar; (2) borrar el código comentado y los `println` al final, cuando ya no eran necesarios para ninguna verificación; (3) tests y batería HTTP.
+- **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`; las 25 llamadas HTTP son idénticas a las de R08; PMD pasó de 25 a **10** violaciones en este refactoring.
+- **Commit:** _(se completa al terminar la tanda)_

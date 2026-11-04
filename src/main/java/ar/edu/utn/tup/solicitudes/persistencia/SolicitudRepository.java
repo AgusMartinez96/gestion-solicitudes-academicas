@@ -12,7 +12,7 @@ public interface SolicitudRepository extends JpaRepository<Solicitud, Long> {
 
     @Override
     @EntityGraph(attributePaths = { "estudiante", "responsable" })
-    Optional<Solicitud> findById(Long id);
+    Optional<Solicitud> findById(Long solicitudId);
 
     @Override
     @EntityGraph(attributePaths = { "estudiante", "responsable" })

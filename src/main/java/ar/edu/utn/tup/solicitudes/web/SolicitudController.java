@@ -34,14 +34,13 @@ public class SolicitudController {
     @PostMapping("/api/solicitudes")
     @ResponseStatus(HttpStatus.CREATED)
     public SolicitudResponse crear(@RequestBody RegistrarSolicitudRequest request) {
-        System.out.println("DEBUG crear solicitud legajo=" + request.legajo() + " tipo=" + request.tipo());
         NuevaSolicitud nueva = mapper.aNuevaSolicitud(request);
         return mapper.aResponse(solicitudService.registrar(nueva));
     }
 
     @GetMapping("/api/solicitudes/{id}")
-    public SolicitudResponse obtener(@PathVariable("id") Long id) {
-        return mapper.aResponse(solicitudService.obtener(id));
+    public SolicitudResponse obtener(@PathVariable("id") Long solicitudId) {
+        return mapper.aResponse(solicitudService.obtener(solicitudId));
     }
 
     @GetMapping("/api/solicitudes")
@@ -58,14 +57,14 @@ public class SolicitudController {
     }
 
     @PatchMapping("/api/solicitudes/{id}/estado")
-    public SolicitudResponse cambiarEstado(@PathVariable("id") Long id,
+    public SolicitudResponse cambiarEstado(@PathVariable("id") Long solicitudId,
             @RequestBody CambiarEstadoRequest request) {
-        return mapper.aResponse(solicitudService.cambiarEstado(id, request.estado()));
+        return mapper.aResponse(solicitudService.cambiarEstado(solicitudId, request.estado()));
     }
 
     @PatchMapping("/api/solicitudes/{id}/responsable")
-    public SolicitudResponse asignarResponsable(@PathVariable("id") Long id,
+    public SolicitudResponse asignarResponsable(@PathVariable("id") Long solicitudId,
             @RequestBody AsignarResponsableRequest request) {
-        return mapper.aResponse(solicitudService.asignarResponsable(id, request.responsableId()));
+        return mapper.aResponse(solicitudService.asignarResponsable(solicitudId, request.responsableId()));
     }
 }

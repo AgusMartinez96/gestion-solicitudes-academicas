@@ -41,82 +41,67 @@ public class SolicitudService {
     }
 
     public Solicitud registrar(NuevaSolicitud nueva) {
-        Estudiante est = buscarEstudiante(nueva.legajo());
-        LocalDateTime ahora = ahoraTruncado();
-        // int dias = 2;
-        // if (tipo.equals("REVISION_EXAMEN")) {
-        //     dias = 5;
-        // } else if (tipo.equals("CAMBIO_COMISION")) {
-        //     dias = 3;
-        // }
-        // if (prioridad.equals("ALTA")) {
-        //     dias = dias - 1;
-        // }
-        Solicitud s = armarSolicitud(nueva, est, ahora);
-        return solicitudRepository.save(s);
+        Estudiante estudiante = buscarEstudiante(nueva.legajo());
+        Solicitud solicitud = armarSolicitud(nueva, estudiante, ahoraTruncado());
+        return solicitudRepository.save(solicitud);
     }
 
-    public Solicitud obtener(Long id) {
-        return buscarSolicitud(id);
+    public Solicitud obtener(Long solicitudId) {
+        return buscarSolicitud(solicitudId);
     }
 
     public List<Solicitud> buscar(FiltroSolicitudes filtro) {
-        List<Solicitud> lista2 = new ArrayList<>();
-        for (Solicitud s : solicitudRepository.findAll()) {
-            if (filtro.coincideCon(s)) {
-                lista2.add(s);
+        List<Solicitud> coincidentes = new ArrayList<>();
+        for (Solicitud solicitud : solicitudRepository.findAll()) {
+            if (filtro.coincideCon(solicitud)) {
+                coincidentes.add(solicitud);
             }
         }
-        lista2.sort(Comparator.comparing(Solicitud::getId));
-        return lista2;
+        coincidentes.sort(Comparator.comparing(Solicitud::getId));
+        return coincidentes;
     }
 
-    public Solicitud cambiarEstado(Long id, String estado) {
-        Solicitud s = buscarSolicitud(id);
-        EstadoSolicitud nuevo = parsearEstado(estado);
-        s.cambiarEstado(nuevo, ahoraTruncado());
-        s = solicitudRepository.save(s);
-        if (s.getEstado().esResolucion()) {
-            notificador.notificarCierre(s);
+    public Solicitud cambiarEstado(Long solicitudId, String textoEstado) {
+        Solicitud solicitud = buscarSolicitud(solicitudId);
+        EstadoSolicitud nuevoEstado = parsearEstado(textoEstado);
+        solicitud.cambiarEstado(nuevoEstado, ahoraTruncado());
+        Solicitud guardada = solicitudRepository.save(solicitud);
+        if (guardada.getEstado().esResolucion()) {
+            notificador.notificarCierre(guardada);
         }
-        return s;
+        return guardada;
     }
 
-    public Solicitud asignarResponsable(Long id, Long responsableId) {
-        Solicitud s = buscarSolicitud(id);
-        if (s.estaCerrada()) {
-            throw new ReglaDeNegocioException("La solicitud está cerrada: " + id);
+    public Solicitud asignarResponsable(Long solicitudId, Long responsableId) {
+        Solicitud solicitud = buscarSolicitud(solicitudId);
+        if (solicitud.estaCerrada()) {
+            throw new ReglaDeNegocioException("La solicitud está cerrada: " + solicitudId);
         }
-        Responsable resp = buscarResponsableActivo(responsableId);
-        s.asignarResponsable(resp, ahoraTruncado());
-        return solicitudRepository.save(s);
+        Responsable responsable = buscarResponsableActivo(responsableId);
+        solicitud.asignarResponsable(responsable, ahoraTruncado());
+        return solicitudRepository.save(solicitud);
     }
 
-    private Solicitud buscarSolicitud(Long id) {
-        Solicitud s = solicitudRepository.findById(id).orElse(null);
-        if (s == null) {
-            throw new RecursoNoEncontradoException("Solicitud no encontrada: " + id);
-        }
-        return s;
+    private Solicitud buscarSolicitud(Long solicitudId) {
+        return solicitudRepository.findById(solicitudId).orElseThrow(
+                () -> new RecursoNoEncontradoException("Solicitud no encontrada: " + solicitudId));
     }
 
     private Estudiante buscarEstudiante(String legajo) {
-        Estudiante est = estudianteRepository.findByLegajo(legajo).orElse(null);
-        if (est == null) {
-            throw new RecursoNoEncontradoException("Estudiante no encontrado: " + legajo);
-        }
-        return est;
+        return estudianteRepository.findByLegajo(legajo).orElseThrow(
+                () -> new RecursoNoEncontradoException("Estudiante no encontrado: " + legajo));
     }
 
-    private Responsable buscarResponsableActivo(Long idResp) {
-        Responsable resp = idResp == null ? null : responsableRepository.findById(idResp).orElse(null);
-        if (resp == null) {
-            throw new RecursoNoEncontradoException("Responsable no encontrado: " + idResp);
+    private Responsable buscarResponsableActivo(Long responsableId) {
+        Responsable responsable = responsableId == null ? null
+                : responsableRepository.findById(responsableId).orElse(null);
+        if (responsable == null) {
+            throw new RecursoNoEncontradoException("Responsable no encontrado: " + responsableId);
         }
-        if (!resp.isActivo()) {
-            throw new ReglaDeNegocioException("El responsable no está activo: " + idResp);
+        if (!responsable.isActivo()) {
+            throw new ReglaDeNegocioException("El responsable no está activo: " + responsableId);
         }
-        return resp;
+        return responsable;
     }
 
     private EstadoSolicitud parsearEstado(String texto) {
@@ -128,16 +113,15 @@ public class SolicitudService {
         return LocalDateTime.now(clock).truncatedTo(ChronoUnit.SECONDS);
     }
 
-    private Solicitud armarSolicitud(NuevaSolicitud nueva, Estudiante est, LocalDateTime creacion) {
-        Solicitud s = new Solicitud();
-        s.setTipo(nueva.tipo());
-        s.setDescripcion(nueva.descripcion());
-        s.setPrioridad(nueva.prioridadEfectiva());
-        s.setEstado(EstadoSolicitud.PENDIENTE);
-        s.setFechaCreacion(creacion);
-        s.setFechaVencimiento(creacion.plusDays(nueva.plazoDias()));
-        s.setEstudiante(est);
-        System.out.println("DEBUG solicitud armada para " + nueva.legajo() + " vence en " + nueva.plazoDias() + " dias");
-        return s;
+    private Solicitud armarSolicitud(NuevaSolicitud nueva, Estudiante estudiante, LocalDateTime creacion) {
+        Solicitud solicitud = new Solicitud();
+        solicitud.setTipo(nueva.tipo());
+        solicitud.setDescripcion(nueva.descripcion());
+        solicitud.setPrioridad(nueva.prioridadEfectiva());
+        solicitud.setEstado(EstadoSolicitud.PENDIENTE);
+        solicitud.setFechaCreacion(creacion);
+        solicitud.setFechaVencimiento(creacion.plusDays(nueva.plazoDias()));
+        solicitud.setEstudiante(estudiante);
+        return solicitud;
     }
 }
