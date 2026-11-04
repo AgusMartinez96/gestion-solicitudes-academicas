@@ -13,8 +13,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import ar.edu.utn.tup.solicitudes.aplicacion.FiltroSolicitudes;
-import ar.edu.utn.tup.solicitudes.aplicacion.NuevaSolicitud;
 import ar.edu.utn.tup.solicitudes.aplicacion.SolicitudService;
+import ar.edu.utn.tup.solicitudes.dominio.EstadoSolicitud;
+import ar.edu.utn.tup.solicitudes.dominio.Prioridad;
+import ar.edu.utn.tup.solicitudes.dominio.TipoSolicitud;
 import ar.edu.utn.tup.solicitudes.web.dto.AsignarResponsableRequest;
 import ar.edu.utn.tup.solicitudes.web.dto.CambiarEstadoRequest;
 import ar.edu.utn.tup.solicitudes.web.dto.RegistrarSolicitudRequest;
@@ -34,8 +36,7 @@ public class SolicitudController {
     @PostMapping("/api/solicitudes")
     @ResponseStatus(HttpStatus.CREATED)
     public SolicitudResponse crear(@RequestBody RegistrarSolicitudRequest request) {
-        NuevaSolicitud nueva = mapper.aNuevaSolicitud(request);
-        return mapper.aResponse(solicitudService.registrar(nueva));
+        return mapper.aResponse(solicitudService.registrar(mapper.aPedido(request)));
     }
 
     @GetMapping("/api/solicitudes/{id}")
@@ -49,9 +50,9 @@ public class SolicitudController {
             @RequestParam(name = "prioridad", required = false) String prioridad,
             @RequestParam(name = "legajo", required = false) String legajo) {
         FiltroSolicitudes filtro = new FiltroSolicitudes(
-                estado == null ? null : mapper.aEstado(estado),
-                tipo == null ? null : mapper.aTipo(tipo),
-                prioridad == null ? null : mapper.aPrioridad(prioridad),
+                estado == null ? null : EstadoSolicitud.parsear(estado),
+                tipo == null ? null : TipoSolicitud.parsear(tipo),
+                prioridad == null ? null : Prioridad.parsear(prioridad),
                 legajo);
         return mapper.aResponse(solicitudService.buscar(filtro));
     }

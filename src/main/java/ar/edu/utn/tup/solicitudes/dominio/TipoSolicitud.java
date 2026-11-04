@@ -1,6 +1,6 @@
 package ar.edu.utn.tup.solicitudes.dominio;
 
-import java.util.Optional;
+import ar.edu.utn.tup.solicitudes.dominio.excepciones.DatoInvalidoException;
 
 public enum TipoSolicitud {
 
@@ -26,12 +26,12 @@ public enum TipoSolicitud {
         return prioridadPorDefecto;
     }
 
-    public static Optional<TipoSolicitud> desde(String valor) {
+    public static TipoSolicitud parsear(String valor) {
         for (TipoSolicitud tipo : values()) {
             if (tipo.name().equals(valor)) {
-                return Optional.of(tipo);
+                return tipo;
             }
         }
-        return Optional.empty();
+        throw new DatoInvalidoException("Tipo de solicitud inválido: " + valor);
     }
 }

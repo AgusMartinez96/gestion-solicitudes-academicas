@@ -6,15 +6,11 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import ar.edu.utn.tup.solicitudes.aplicacion.NuevaSolicitud;
+import ar.edu.utn.tup.solicitudes.aplicacion.PedidoRegistro;
 import ar.edu.utn.tup.solicitudes.aplicacion.ReporteResumen;
-import ar.edu.utn.tup.solicitudes.dominio.EstadoSolicitud;
 import ar.edu.utn.tup.solicitudes.dominio.Estudiante;
-import ar.edu.utn.tup.solicitudes.dominio.Prioridad;
 import ar.edu.utn.tup.solicitudes.dominio.Responsable;
 import ar.edu.utn.tup.solicitudes.dominio.Solicitud;
-import ar.edu.utn.tup.solicitudes.dominio.TipoSolicitud;
-import ar.edu.utn.tup.solicitudes.dominio.excepciones.DatoInvalidoException;
 import ar.edu.utn.tup.solicitudes.web.dto.EstudianteResponse;
 import ar.edu.utn.tup.solicitudes.web.dto.EstudianteResumen;
 import ar.edu.utn.tup.solicitudes.web.dto.RegistrarSolicitudRequest;
@@ -26,35 +22,14 @@ import ar.edu.utn.tup.solicitudes.web.dto.SolicitudResponse;
 @Component
 public class SolicitudMapper {
 
-    private static final int LONGITUD_MINIMA_DESCRIPCION = 10;
-    private static final int LONGITUD_MAXIMA_DESCRIPCION = 500;
-
     private final Clock clock;
 
     public SolicitudMapper(Clock clock) {
         this.clock = clock;
     }
 
-    public NuevaSolicitud aNuevaSolicitud(RegistrarSolicitudRequest request) {
-        validarDescripcion(request.descripcion());
-        TipoSolicitud tipo = aTipo(request.tipo());
-        Prioridad prioridad = request.prioridad() == null ? null : aPrioridad(request.prioridad());
-        return new NuevaSolicitud(request.legajo(), tipo, request.descripcion(), prioridad);
-    }
-
-    public TipoSolicitud aTipo(String texto) {
-        return TipoSolicitud.desde(texto)
-                .orElseThrow(() -> new DatoInvalidoException("Tipo de solicitud inválido: " + texto));
-    }
-
-    public EstadoSolicitud aEstado(String texto) {
-        return EstadoSolicitud.desde(texto)
-                .orElseThrow(() -> new DatoInvalidoException("Estado inválido: " + texto));
-    }
-
-    public Prioridad aPrioridad(String texto) {
-        return Prioridad.desde(texto)
-                .orElseThrow(() -> new DatoInvalidoException("Prioridad inválida: " + texto));
+    public PedidoRegistro aPedido(RegistrarSolicitudRequest request) {
+        return new PedidoRegistro(request.legajo(), request.tipo(), request.descripcion(), request.prioridad());
     }
 
     public SolicitudResponse aResponse(Solicitud solicitud) {
@@ -100,13 +75,5 @@ public class SolicitudMapper {
             return null;
         }
         return new ResponsableResumen(responsable.getId(), responsable.getNombre(), responsable.getArea());
-    }
-
-    private void validarDescripcion(String descripcion) {
-        if (descripcion == null || descripcion.length() < LONGITUD_MINIMA_DESCRIPCION
-                || descripcion.length() > LONGITUD_MAXIMA_DESCRIPCION) {
-            throw new DatoInvalidoException("La descripción debe tener entre " + LONGITUD_MINIMA_DESCRIPCION
-                    + " y " + LONGITUD_MAXIMA_DESCRIPCION + " caracteres");
-        }
     }
 }

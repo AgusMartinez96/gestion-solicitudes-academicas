@@ -1,6 +1,6 @@
 package ar.edu.utn.tup.solicitudes.dominio;
 
-import java.util.Optional;
+import ar.edu.utn.tup.solicitudes.dominio.excepciones.DatoInvalidoException;
 
 public enum EstadoSolicitud {
 
@@ -30,12 +30,12 @@ public enum EstadoSolicitud {
         return esResolucion();
     }
 
-    public static Optional<EstadoSolicitud> desde(String valor) {
+    public static EstadoSolicitud parsear(String valor) {
         for (EstadoSolicitud estado : values()) {
             if (estado.name().equals(valor)) {
-                return Optional.of(estado);
+                return estado;
             }
         }
-        return Optional.empty();
+        throw new DatoInvalidoException("Estado inválido: " + valor);
     }
 }

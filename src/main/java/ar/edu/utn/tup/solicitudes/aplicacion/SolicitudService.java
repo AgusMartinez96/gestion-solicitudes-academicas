@@ -14,7 +14,6 @@ import ar.edu.utn.tup.solicitudes.dominio.EstadoSolicitud;
 import ar.edu.utn.tup.solicitudes.dominio.Estudiante;
 import ar.edu.utn.tup.solicitudes.dominio.Responsable;
 import ar.edu.utn.tup.solicitudes.dominio.Solicitud;
-import ar.edu.utn.tup.solicitudes.dominio.excepciones.DatoInvalidoException;
 import ar.edu.utn.tup.solicitudes.dominio.excepciones.RecursoNoEncontradoException;
 import ar.edu.utn.tup.solicitudes.persistencia.EstudianteRepository;
 import ar.edu.utn.tup.solicitudes.persistencia.ResponsableRepository;
@@ -39,7 +38,8 @@ public class SolicitudService {
         this.clock = clock;
     }
 
-    public Solicitud registrar(NuevaSolicitud nueva) {
+    public Solicitud registrar(PedidoRegistro pedido) {
+        NuevaSolicitud nueva = NuevaSolicitud.desde(pedido);
         Estudiante estudiante = buscarEstudiante(nueva.legajo());
         Solicitud solicitud = armarSolicitud(nueva, estudiante, ahoraTruncado());
         return solicitudRepository.save(solicitud);
@@ -62,7 +62,7 @@ public class SolicitudService {
 
     public Solicitud cambiarEstado(Long solicitudId, String textoEstado) {
         Solicitud solicitud = buscarSolicitud(solicitudId);
-        EstadoSolicitud nuevoEstado = parsearEstado(textoEstado);
+        EstadoSolicitud nuevoEstado = EstadoSolicitud.parsear(textoEstado);
         solicitud.cambiarEstado(nuevoEstado, ahoraTruncado());
         Solicitud guardada = solicitudRepository.save(solicitud);
         if (guardada.getEstado().esResolucion()) {
@@ -96,11 +96,6 @@ public class SolicitudService {
             throw new RecursoNoEncontradoException("Responsable no encontrado: " + responsableId);
         }
         return responsable;
-    }
-
-    private EstadoSolicitud parsearEstado(String texto) {
-        return EstadoSolicitud.desde(texto)
-                .orElseThrow(() -> new DatoInvalidoException("Estado inválido: " + texto));
     }
 
     private LocalDateTime ahoraTruncado() {

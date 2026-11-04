@@ -1,6 +1,6 @@
 package ar.edu.utn.tup.solicitudes.dominio;
 
-import java.util.Optional;
+import ar.edu.utn.tup.solicitudes.dominio.excepciones.DatoInvalidoException;
 
 public enum Prioridad {
 
@@ -18,12 +18,12 @@ public enum Prioridad {
         return dias;
     }
 
-    public static Optional<Prioridad> desde(String valor) {
+    public static Prioridad parsear(String valor) {
         for (Prioridad prioridad : values()) {
             if (prioridad.name().equals(valor)) {
-                return Optional.of(prioridad);
+                return prioridad;
             }
         }
-        return Optional.empty();
+        throw new DatoInvalidoException("Prioridad inválida: " + valor);
     }
 }
