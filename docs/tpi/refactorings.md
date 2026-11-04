@@ -315,7 +315,7 @@
 - **Swagger — resultado parcial, y por qué:** `GET /v3/api-docs` ya muestra esquemas tipados para `reporte-controller` (`ReporteResumenResponse`) y `soporte-controller` (`EstudianteResponse`, `ResponsableResponse`); el "Example Value" de esos endpoints deja de ser `{}`. En cambio, los 5 endpoints de `solicitud-controller` siguen mostrando `object`: sus métodos devuelven `ResponseEntity<Object>` porque el bloque `catch (Exception)` responde con texto plano, y mientras eso exista el tipo de retorno no puede ser `SolicitudResponse`. Se resuelve en R07, cuando el manejo de errores sale del controller; la verificación del "Example Value" de `SolicitudResponse` queda documentada en la ficha de R07.
 - **Pasos seguros aplicados:** (1) capturar la línea base HTTP; (2) crear los records sin usarlos; (3) cambiar el mapper y los tres controllers; (4) ejecutar los tests; (5) repetir la captura y comparar con `diff`.
 - **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`; diff HTTP de 25 llamadas: sin diferencias.
-- **Commit:** _(se completa al terminar la tanda)_
+- **Commit:** `28f2ef5`
 
 ---
 
@@ -448,7 +448,7 @@
 - **Pasos seguros aplicados:** (1) crear las excepciones y el handler sin usarlos; (2) reemplazar `RuntimeException("4xx|...")` por la excepción correspondiente, una capa por vez (mapper, servicio, entidad); (3) recién entonces quitar los `try/catch` y `procesar` del controller; (4) correr tests y repetir la batería HTTP.
 - **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`.
 - **Fuera de alcance de R07:** `timestamp` usa `LocalDateTime.now()` hasta R08 (Clock); `Solicitud.asignarResponsable` no valida cerrada/inactivo: esas reglas siguen en el servicio porque el contrato exige el orden 409 (cerrada) → 404 (responsable) → 409 (inactivo), que intercala una búsqueda entre dos reglas.
-- **Commit:** _(se completa al terminar la tanda)_
+- **Commit:** `7ab83de`
 
 ---
 
@@ -472,7 +472,7 @@
 - **Comparación con la v1 en la consola:** `docs/evidencias/antes/capturas/05-notificacion-consola.png` muestra la línea escrita por `System.out`; ahora aparece en el log con nivel, nombre de logger y formato estándar (`INFO ... NotificadorLog : Notificación a martina.sosa@alumnos.example: su solicitud 5 fue RESUELTA`), y puede silenciarse o redirigirse por configuración.
 - **Pasos seguros aplicados:** (1) crear `Notificador`, `NotificadorLog` y `ClockConfig` sin usarlos; (2) inyectar `Clock` en una clase por vez y reemplazar `now()`; (3) reemplazar `new NotificadorConsola()` por la interfaz inyectada; (4) reemplazar el último uso de `Utils`; (5) borrar `util/` recién cuando el compilador no marcaba referencias; (6) tests y batería HTTP.
 - **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`. Las 25 llamadas HTTP (con la app levantada) son idénticas a las de R07; la notificación aparece una vez en el log al resolver la solicitud 5.
-- **Commit:** _(se completa al terminar la tanda)_
+- **Commit:** `d3c1ebb`
 
 ---
 
@@ -503,4 +503,4 @@
   Resultado: **10** violaciones `ShortVariable`, todas sobre `id`, justificadas arriba. No se modificó `config/pmd/ruleset.xml` para ocultarlas.
 - **Pasos seguros aplicados:** (1) reemplazar cada nombre y cada número de a uno y compilar; (2) borrar el código comentado y los `println` al final, cuando ya no eran necesarios para ninguna verificación; (3) tests y batería HTTP.
 - **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`; las 25 llamadas HTTP son idénticas a las de R08; PMD pasó de 25 a **10** violaciones en este refactoring.
-- **Commit:** _(se completa al terminar la tanda)_
+- **Commit:** `bd1b115`
