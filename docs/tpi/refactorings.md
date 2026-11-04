@@ -113,3 +113,61 @@
 - **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`.
 - **Fuera de alcance de R02:** `Utils.calcularDias` y la prioridad por defecto siguen como decisiones sobre el tipo (R04); `Utils.validar` todavía recibe `String` (se elimina en R08); el enum todavía no tiene comportamiento (R03 y R04).
 - **Commit:** _(se completa al terminar la tanda)_
+
+---
+
+## R03 — Move Method
+
+- **Smell(s):** S06 (Feature Envy), S08 (Anemic Domain Model) · **Principio:** cohesión y *Tell, Don't Ask* (la entidad decide sobre sus propios datos); sienta la base de SRP para R06.
+- **Motivación:** `puedeCambiar(Solicitud, String)` y `estaCerrada(Solicitud)` solo usaban datos de la solicitud y su estado, pero vivían en el controller. La entidad era un contenedor de getters/setters y el controller le "preguntaba" el estado para decidir por ella.
+- **Antes:**
+  - `SC:389-401` (`estado-inicial`) — la regla de transiciones, fuera de la entidad y con strings:
+    ```java
+    private boolean puedeCambiar(Solicitud s, String nuevo) {
+        String actual = s.getEstado();
+        if (actual.equals("PENDIENTE")) {
+            if (nuevo.equals("EN_ANALISIS") || nuevo.equals("CANCELADA")) {
+    ```
+  - `SC:318-321` (commit de R01) — `estaCerrada(Solicitud)` en el controller, con 3 comparaciones.
+  - `SC:248-249` y `SC:307-311` (`estado-inicial`) — el controller modificaba la entidad campo por campo, incluida la regla RN-10:
+    ```java
+    s.setResponsable(resp);
+    if (s.getEstado().equals("PENDIENTE")) {
+        s.setEstado("EN_ANALISIS");
+        s.setFechaActualizacion(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+    }
+    ```
+- **Después:**
+  - `model/EstadoSolicitud.java:13-31` — la máquina de estados vive en el enum:
+    ```java
+    public boolean puedeTransicionarA(EstadoSolicitud destino) {
+        return switch (this) {
+            case PENDIENTE -> destino == EN_ANALISIS || destino == CANCELADA;
+            case EN_ANALISIS -> destino == RESUELTA || destino == RECHAZADA;
+            case RESUELTA, RECHAZADA, CANCELADA -> false;
+        };
+    }
+    public boolean esCerrado() { ... }
+    public boolean esResolucion() { ... }
+    public boolean requiereResponsable() { return esResolucion(); }
+    ```
+  - `model/Solicitud.java:64-86` — la entidad gana comportamiento: `estaCerrada()`, `estaVencida(LocalDateTime ahora)`, `tieneResponsable()`, `cambiarEstado(EstadoSolicitud, LocalDateTime)` y `asignarResponsable(Responsable, LocalDateTime)` (que encapsula RN-10: si estaba `PENDIENTE` pasa a `EN_ANALISIS`).
+  - `SC:118-127` y `SC:142-148` — el controller solo delega:
+    ```java
+    if (!s.getEstado().puedeTransicionarA(nuevo)) { ... }
+    if (nuevo.requiereResponsable() && !s.tieneResponsable()) { ... }
+    s.cambiarEstado(nuevo, ahoraTruncado());
+    ...
+    s.asignarResponsable(resp, ahoraTruncado());
+    ```
+  - Se eliminaron `puedeCambiar` y `estaCerrada` del controller (`SolicitudController` pasó de 401 a 362 líneas). `aMap` y `contarVencidas` usan `s.estaVencida(...)`.
+- **Decisiones de alcance:**
+  - Los métodos de dominio **no lanzan excepciones**: los chequeos que producen 409 siguen en el controller. Hacer que la entidad lance errores de negocio exige excepciones propias, y eso es R07; lanzar ahora un `RuntimeException("409|...")` desde el dominio acoplaría la entidad al protocolo HTTP.
+  - Se agregó `esResolucion()` (no estaba en el diseño) para distinguir "notificar al estudiante" (RN-12) de "requiere responsable" (RN-08), que hoy coinciden en `RESUELTA`/`RECHAZADA` pero son reglas distintas.
+- **Pasos seguros aplicados:**
+  1. Agregar los métodos nuevos al enum y a la entidad sin usarlos (compila igual).
+  2. Reemplazar un uso a la vez en el controller (transición, requiere responsable, cierre, vencida, asignar).
+  3. Borrar `puedeCambiar` y `estaCerrada` del controller cuando ya no tenían llamadas.
+  4. Conservar el orden de chequeos y los mensajes de error.
+- **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`.
+- **Commit:** _(se completa al terminar la tanda)_

@@ -61,6 +61,30 @@ public class Solicitud {
     public Solicitud() {
     }
 
+    public boolean estaCerrada() {
+        return estado.esCerrado();
+    }
+
+    public boolean estaVencida(LocalDateTime ahora) {
+        return !estaCerrada() && fechaVencimiento.isBefore(ahora);
+    }
+
+    public boolean tieneResponsable() {
+        return responsable != null;
+    }
+
+    public void cambiarEstado(EstadoSolicitud nuevo, LocalDateTime ahora) {
+        this.estado = nuevo;
+        this.fechaActualizacion = ahora;
+    }
+
+    public void asignarResponsable(Responsable nuevoResponsable, LocalDateTime ahora) {
+        this.responsable = nuevoResponsable;
+        if (estado == EstadoSolicitud.PENDIENTE) {
+            cambiarEstado(EstadoSolicitud.EN_ANALISIS, ahora);
+        }
+    }
+
     public Long getId() {
         return id;
     }

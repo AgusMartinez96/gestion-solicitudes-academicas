@@ -115,18 +115,16 @@ public class SolicitudController {
         try {
             Solicitud s = buscarSolicitud(id);
             EstadoSolicitud nuevo = parsearEstado((String) body.get("estado"));
-            if (!puedeCambiar(s, nuevo)) {
+            if (!s.getEstado().puedeTransicionarA(nuevo)) {
                 throw new RuntimeException("409|Transición inválida: " + s.getEstado() + " -> " + nuevo);
             }
-            if ((nuevo == EstadoSolicitud.RESUELTA || nuevo == EstadoSolicitud.RECHAZADA)
-                    && s.getResponsable() == null) {
+            if (nuevo.requiereResponsable() && !s.tieneResponsable()) {
                 throw new RuntimeException(
                         "409|La solicitud requiere un responsable asignado para pasar a " + nuevo);
             }
-            s.setEstado(nuevo);
-            s.setFechaActualizacion(ahoraTruncado());
+            s.cambiarEstado(nuevo, ahoraTruncado());
             s = solicitudRepository.save(s);
-            if (s.getEstado() == EstadoSolicitud.RESUELTA || s.getEstado() == EstadoSolicitud.RECHAZADA) {
+            if (s.getEstado().esResolucion()) {
                 new NotificadorConsola().notificar(s.getEstudiante().getEmail(),
                         "Su solicitud " + s.getId() + " fue " + s.getEstado());
             }
@@ -141,17 +139,13 @@ public class SolicitudController {
             @RequestBody Map<String, Object> body) {
         try {
             Solicitud s = buscarSolicitud(id);
-            if (estaCerrada(s)) {
+            if (s.estaCerrada()) {
                 throw new RuntimeException("409|La solicitud está cerrada: " + id);
             }
             Object dato = body.get("responsableId");
             Long idResp = dato == null ? null : Long.valueOf(dato.toString());
             Responsable resp = buscarResponsableActivo(idResp);
-            s.setResponsable(resp);
-            if (s.getEstado() == EstadoSolicitud.PENDIENTE) {
-                s.setEstado(EstadoSolicitud.EN_ANALISIS);
-                s.setFechaActualizacion(ahoraTruncado());
-            }
+            s.asignarResponsable(resp, ahoraTruncado());
             s = solicitudRepository.save(s);
             return ResponseEntity.ok(aMap(s));
         } catch (Exception e) {
@@ -198,8 +192,9 @@ public class SolicitudController {
 
     private int contarVencidas(List<Solicitud> todas) {
         int vencidas = 0;
+        LocalDateTime ahora = LocalDateTime.now();
         for (Solicitud s : todas) {
-            if (!estaCerrada(s) && s.getFechaVencimiento().isBefore(LocalDateTime.now())) {
+            if (s.estaVencida(ahora)) {
                 vencidas++;
             }
         }
@@ -300,11 +295,6 @@ public class SolicitudController {
         return LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
     }
 
-    private boolean estaCerrada(Solicitud s) {
-        return s.getEstado() == EstadoSolicitud.RESUELTA || s.getEstado() == EstadoSolicitud.RECHAZADA
-                || s.getEstado() == EstadoSolicitud.CANCELADA;
-    }
-
     private Map<String, Object> aMap(Solicitud s) {
         Map<String, Object> res = new LinkedHashMap<>();
         res.put("id", s.getId());
@@ -315,7 +305,7 @@ public class SolicitudController {
         res.put("fechaCreacion", s.getFechaCreacion());
         res.put("fechaVencimiento", s.getFechaVencimiento());
         res.put("fechaActualizacion", s.getFechaActualizacion());
-        res.put("vencida", !estaCerrada(s) && s.getFechaVencimiento().isBefore(LocalDateTime.now()));
+        res.put("vencida", s.estaVencida(LocalDateTime.now()));
         res.put("estudiante", aMapEstudiante(s.getEstudiante()));
         res.put("responsable", aMapResponsable(s.getResponsable()));
         return res;
@@ -337,20 +327,6 @@ public class SolicitudController {
         r.put("nombre", resp.getNombre());
         r.put("area", resp.getArea());
         return r;
-    }
-
-    private boolean puedeCambiar(Solicitud s, EstadoSolicitud nuevo) {
-        EstadoSolicitud actual = s.getEstado();
-        if (actual == EstadoSolicitud.PENDIENTE) {
-            if (nuevo == EstadoSolicitud.EN_ANALISIS || nuevo == EstadoSolicitud.CANCELADA) {
-                return true;
-            }
-        } else if (actual == EstadoSolicitud.EN_ANALISIS) {
-            if (nuevo == EstadoSolicitud.RESUELTA || nuevo == EstadoSolicitud.RECHAZADA) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private Solicitud armarSolicitud(String legajo, TipoSolicitud tipo, String descripcion, Prioridad prioridad,
