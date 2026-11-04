@@ -39,7 +39,7 @@ public class ReporteService {
         }
 <span class="fc bfc" id="L40" title="All 2 branches covered.">        for (Solicitud solicitud : todas) {</span>
 <span class="fc" id="L41">            porEstado.merge(solicitud.getEstado(), 1, Integer::sum);</span>
-        }
+<span class="fc" id="L42">        }</span>
 <span class="fc" id="L43">        return porEstado;</span>
     }
 
@@ -50,7 +50,7 @@ public class ReporteService {
         }
 <span class="fc bfc" id="L51" title="All 2 branches covered.">        for (Solicitud solicitud : todas) {</span>
 <span class="fc" id="L52">            porTipo.merge(solicitud.getTipo(), 1, Integer::sum);</span>
-        }
+<span class="fc" id="L53">        }</span>
 <span class="fc" id="L54">        return porTipo;</span>
     }
 
@@ -61,7 +61,7 @@ public class ReporteService {
 <span class="fc bfc" id="L61" title="All 2 branches covered.">            if (solicitud.estaVencida(ahora)) {</span>
 <span class="fc" id="L62">                vencidas++;</span>
             }
-        }
+<span class="fc" id="L64">        }</span>
 <span class="fc" id="L65">        return vencidas;</span>
     }
 }

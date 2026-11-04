@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<pmd xmlns="http://pmd.sourceforge.net/report/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/report/2.0.0 https://pmd.github.io/schema/report_2_0_0.xsd" version="7.17.0" timestamp="2026-11-04T16:24:09.726">
+<pmd xmlns="http://pmd.sourceforge.net/report/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/report/2.0.0 https://pmd.github.io/schema/report_2_0_0.xsd" version="7.17.0" timestamp="2026-11-04T16:28:15.310">
 <file name="C:\Users\Agustin\Desktop\Metodologia\gestion-solicitudes-academicas\src\main\java\ar\edu\utn\tup\solicitudes\dominio\Estudiante.java">
 <violation beginline="14" endline="14" begincolumn="18" endcolumn="20" rule="ShortVariable" ruleset="Code Style" package="ar.edu.utn.tup.solicitudes.dominio" class="Estudiante" variable="id" externalInfoUrl="https://docs.pmd-code.org/pmd-doc-7.17.0/pmd_rules_java_codestyle.html#shortvariable" priority="3">
 Avoid variables with short names like id

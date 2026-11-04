@@ -92,7 +92,7 @@ public class Solicitud {
         }
 <span class="fc bfc" id="L93" title="All 4 branches covered.">        if (nuevo.requiereResponsable() &amp;&amp; !tieneResponsable()) {</span>
 <span class="fc" id="L94">            throw new ReglaDeNegocioException(</span>
-<span class="fc" id="L95">                    &quot;La solicitud requiere un responsable asignado para pasar a &quot; + nuevo);</span>
+                    &quot;La solicitud requiere un responsable asignado para pasar a &quot; + nuevo);
         }
 <span class="fc" id="L97">        this.estado = nuevo;</span>
 <span class="fc" id="L98">        this.fechaActualizacion = ahora;</span>

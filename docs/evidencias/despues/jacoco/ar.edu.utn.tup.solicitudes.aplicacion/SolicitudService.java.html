@@ -30,8 +30,8 @@ public class SolicitudService {
     private final Notificador notificador;
     private final Clock clock;
 
-<span class="fc" id="L33">    public SolicitudService(SolicitudRepository solicitudRepository, EstudianteRepository estudianteRepository,</span>
-            ResponsableRepository responsableRepository, Notificador notificador, Clock clock) {
+    public SolicitudService(SolicitudRepository solicitudRepository, EstudianteRepository estudianteRepository,
+<span class="fc" id="L34">            ResponsableRepository responsableRepository, Notificador notificador, Clock clock) {</span>
 <span class="fc" id="L35">        this.solicitudRepository = solicitudRepository;</span>
 <span class="fc" id="L36">        this.estudianteRepository = estudianteRepository;</span>
 <span class="fc" id="L37">        this.responsableRepository = responsableRepository;</span>
@@ -57,7 +57,7 @@ public class SolicitudService {
 <span class="fc bfc" id="L57" title="All 2 branches covered.">            if (filtro.coincideCon(solicitud)) {</span>
 <span class="fc" id="L58">                coincidentes.add(solicitud);</span>
             }
-        }
+<span class="fc" id="L60">        }</span>
 <span class="fc" id="L61">        coincidentes.sort(Comparator.comparing(Solicitud::getId));</span>
 <span class="fc" id="L62">        return aDetalles(coincidentes);</span>
     }

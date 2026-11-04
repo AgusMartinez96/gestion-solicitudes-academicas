@@ -117,14 +117,14 @@ Todas medidas sobre el código y los reportes del repositorio.
 | Tipos de producción (archivos `.java` en `src/main`) | 11 | 39 |
 | Clases analizadas por JaCoCo | 8 | 35 |
 | Cantidad de tests | 16 | **105** |
-| Cobertura de instrucciones (JaCoCo) | 82,2 % | **97,0 %** |
-| Cobertura de ramas (JaCoCo) | 60,5 % | **87,8 %** |
-| Cobertura de líneas (JaCoCo) | 81,1 % | **95,5 %** |
+| Cobertura de instrucciones (JaCoCo) | 82,2 % | **95,5 %** |
+| Cobertura de ramas (JaCoCo) | 60,5 % | **86,1 %** |
+| Cobertura de líneas (JaCoCo) | 81,1 % | **93,9 %** |
 
 Notas de lectura:
 
 - Las violaciones `ShortVariable` de la v1 eran variables de nombre corto; las 9 restantes son el campo `id` y sus accesores. Se dejaron a propósito (R09).
-- Con solo los tests de caracterización la v2 tenía 86 % de instrucciones y 75 % de ramas; los tests nuevos la subieron a 97,0 % y 87,8 %. La cobertura no demuestra por sí sola la calidad: muestra que las reglas ahora se ejercitan directamente.
+- Con solo los tests de caracterización la v2 tiene 86,1 % de instrucciones y 74,8 % de ramas (medido con `clean`); los tests nuevos la suben a 95,5 % y 86,1 %. Las cifras se midieron siempre con `.\mvnw.cmd clean test jacoco:report`, porque el agente de JaCoCo acumula datos entre ejecuciones si no se limpia `target\`. La cobertura no demuestra por sí sola la calidad: muestra que las reglas ahora se ejercitan directamente.
 - El crecimiento de tipos (11 → 39) es el costo del diseño en capas, ya discutido en el PR.
 
 ## 6. Cambios externos intencionales

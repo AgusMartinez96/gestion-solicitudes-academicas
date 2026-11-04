@@ -2,14 +2,14 @@
 
 import ar.edu.utn.tup.solicitudes.dominio.excepciones.DatoInvalidoException;
 
-public enum Prioridad {
+<span class="fc" id="L5">public enum Prioridad {</span>
 
 <span class="fc" id="L7">    BAJA,</span>
 <span class="fc" id="L8">    MEDIA,</span>
 <span class="fc" id="L9">    ALTA;</span>
 
     private static final int DIVISOR_PLAZO_ALTA = 2;
-<span class="fc" id="L12">    private static final int PLAZO_MINIMO_DIAS = 1;</span>
+    private static final int PLAZO_MINIMO_DIAS = 1;
 
     public int ajustarPlazo(int dias) {
 <span class="fc bfc" id="L15" title="All 2 branches covered.">        if (this == ALTA) {</span>
