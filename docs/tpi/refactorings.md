@@ -171,3 +171,83 @@
   4. Conservar el orden de chequeos y los mensajes de error.
 - **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`.
 - **Commit:** `43c190e`
+
+---
+
+## R04 — Replace Conditional with Polymorphism (comportamiento dentro de `TipoSolicitud`)
+
+- **Smell(s):** S07 (Switch Statements repetidos) · **Principio:** **OCP** (abierto a extensión, cerrado a modificación).
+- **Motivación:** dos decisiones paralelas sobre el mismo tipo —el plazo en `Utils.calcularDias` y la prioridad por defecto en un `if/else` del controller— obligaban a modificar varios archivos para agregar un tipo, y el `default`/`else` final tragaba los olvidos sin error.
+- **Antes:**
+  - `util/Utils.java:7-22` (`estado-inicial`) — `switch` sobre el texto del tipo:
+    ```java
+    public static int calcularDias(String tipo) {
+        switch (tipo) {
+            case "CERTIFICADO_ALUMNO_REGULAR":
+                return 2;
+            ...
+            default:
+                return 7;
+    ```
+  - `SC:252-263` y `SC:265-274` (commit de R03) — prioridad por defecto y ajuste del plazo en el controller:
+    ```java
+    if (tipo == TipoSolicitud.REVISION_EXAMEN) {
+        return Prioridad.ALTA;
+    }
+    if (tipo == TipoSolicitud.CAMBIO_COMISION || tipo == TipoSolicitud.CERTIFICADO_ALUMNO_REGULAR) {
+        return Prioridad.MEDIA;
+    }
+    return Prioridad.BAJA;
+    ```
+  - `util/Utils.java:28-43` — `Utils.validar(...)`, que revalidaba descripción, tipo, prioridad y legajo con cadenas de `equals`.
+- **Después:**
+  - `model/TipoSolicitud.java:7-27` — cada constante declara su plazo y su prioridad por defecto:
+    ```java
+    CERTIFICADO_ALUMNO_REGULAR(2, Prioridad.MEDIA),
+    REVISION_EXAMEN(5, Prioridad.ALTA),
+    EQUIVALENCIA(15, Prioridad.BAJA),
+    CAMBIO_COMISION(3, Prioridad.MEDIA),
+    OTRO(7, Prioridad.BAJA);
+    ...
+    public int plazoDias() { return plazoDias; }
+    public Prioridad prioridadPorDefecto() { return prioridadPorDefecto; }
+    ```
+  - `model/Prioridad.java:11-16` — la regla "ALTA reduce el plazo a la mitad, mínimo 1 día" vive en la prioridad:
+    ```java
+    public int ajustarPlazo(int dias) {
+        if (this == ALTA) {
+            return Math.max(1, dias / 2);
+        }
+        return dias;
+    }
+    ```
+  - `SC:251-260` — el controller solo delega: `return tipo.prioridadPorDefecto();` y `return prioridad.ajustarPlazo(tipo.plazoDias());`.
+  - `Utils.calcularDias` desapareció y `Utils.validar` se eliminó: tras R02, la descripción, el tipo y la prioridad ya se validaban antes de llamarla, y el legajo nulo se resuelve igual en `buscarEstudiante`. `Utils` quedó con un solo método (`calcularVencimiento`) hasta R08.
+- **Por qué ahora se cumple OCP — costo de agregar el tipo `BECA`:**
+
+  En la v1 (`docs/tpi/02-calidad-externa-interna.md` §3) agregar `BECA` obligaba a tocar **6 lugares en 2 archivos**, y 2 de ellos fallaban en silencio. Estado actual de cada uno:
+
+  | # | Lugar en la v1 | Qué pasa ahora |
+  |---|---|---|
+  | 1 | `Utils.java:7-22` — `case "BECA"` (si se olvidaba: plazo 7 por el `default`, **sin error**) | Ya no existe: el plazo es un argumento obligatorio del constructor de la constante. No se puede olvidar: no compila. |
+  | 2 | `Utils.java:32-33` — validación en `Utils.validar` | `Utils.validar` se eliminó (R04). |
+  | 3 | `SC:57-58` — validación del tipo en `crear` | `parsearTipo` usa `TipoSolicitud.desde`, que recorre `values()` (R02). |
+  | 4 | `SC:61-69` — prioridad por defecto (si se olvidaba: `BAJA` por el `else`, **sin error**) | Es el segundo argumento del constructor de la constante. No se puede olvidar. |
+  | 5 | `SC:172-173` — validación del filtro `tipo` | Mismo `parsearTipo` (R02). |
+  | 6 | `SC:362-367` — `porTipo.put("BECA", 0)` (si se olvidaba: `NullPointerException` → 500) | `contarPorTipo` inicializa los contadores con `values()` (R02). |
+
+  **Ahora basta con agregar una constante en `TipoSolicitud`, en 1 archivo:**
+  ```java
+  OTRO(7, Prioridad.BAJA),
+  BECA(10, Prioridad.MEDIA);
+  ```
+  **Comprobado con la app levantada** (cambio temporal, descartado con `git checkout`, no incluido en el commit): `POST /api/solicitudes` con `"tipo":"BECA"` y sin prioridad respondió **201** con prioridad `MEDIA` y vencimiento a +10 días; `GET /api/solicitudes?tipo=BECA` devolvió la solicitud; y `GET /api/reportes/resumen` incluyó `"BECA":1` en `porTipo`, sin tocar `SolicitudController`. La columna `tipo` aceptó el valor nuevo porque Hibernate regenera su `CHECK` a partir del enum.
+
+  Eso es OCP: el sistema está **abierto a extensión** (nueva constante) y **cerrado a modificación** (el controller, el reporte, los filtros y la persistencia no se editan). Además cambió el modo de fallo: lo que antes fallaba en silencio ahora no se puede omitir.
+- **Pasos seguros aplicados:**
+  1. Agregar `plazoDias`, `prioridadPorDefecto` y `ajustarPlazo` con los mismos valores que el `switch` y los `if` (2/3/5/7/15 días; REVISION_EXAMEN→ALTA; CAMBIO_COMISION y CERTIFICADO→MEDIA; resto→BAJA).
+  2. Reemplazar las dos decisiones del controller por llamadas al enum.
+  3. Borrar `Utils.calcularDias` y `Utils.validar` cuando quedaron sin uso, y comprobar por HTTP que los mensajes de error no cambiaron (`POST` sin legajo → 404 `Estudiante no encontrado: null`; prioridad `URGENTE` → 400 `Prioridad inválida: URGENTE`; prioridad vacía → 400 `Prioridad inválida: `), idénticos a la línea base previa al cambio.
+- **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`.
+- **Fuera de alcance de R04:** los números `2, 3, 5, 7, 15` y el `/ 2` siguen como literales en el enum (son datos del dominio; el `/ 2` pasará a una constante en R09).
+- **Commit:** _(se completa al terminar la tanda)_

@@ -57,7 +57,6 @@ public class SolicitudController {
             validarDescripcion(descripcion);
             TipoSolicitud tipo = parsearTipo(textoTipo);
             Prioridad prioridad = resolverPrioridad(tipo, textoPrioridad);
-            Utils.validar(descripcion, tipo.name(), prioridad.name(), legajo);
             Estudiante est = buscarEstudiante(legajo);
             LocalDateTime ahora = ahoraTruncado();
             // int dias = 2;
@@ -253,24 +252,11 @@ public class SolicitudController {
         if (texto != null) {
             return parsearPrioridad(texto);
         }
-        if (tipo == TipoSolicitud.REVISION_EXAMEN) {
-            return Prioridad.ALTA;
-        }
-        if (tipo == TipoSolicitud.CAMBIO_COMISION || tipo == TipoSolicitud.CERTIFICADO_ALUMNO_REGULAR) {
-            return Prioridad.MEDIA;
-        }
-        return Prioridad.BAJA;
+        return tipo.prioridadPorDefecto();
     }
 
     private int calcularPlazoDias(TipoSolicitud tipo, Prioridad prioridad) {
-        int dias = Utils.calcularDias(tipo.name());
-        if (prioridad == Prioridad.ALTA) {
-            dias = dias / 2;
-            if (dias < 1) {
-                dias = 1;
-            }
-        }
-        return dias;
+        return prioridad.ajustarPlazo(tipo.plazoDias());
     }
 
     private List<Solicitud> filtrar(EstadoSolicitud estado, TipoSolicitud tipo, Prioridad prioridad,

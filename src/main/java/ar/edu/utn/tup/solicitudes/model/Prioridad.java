@@ -8,6 +8,13 @@ public enum Prioridad {
     MEDIA,
     ALTA;
 
+    public int ajustarPlazo(int dias) {
+        if (this == ALTA) {
+            return Math.max(1, dias / 2);
+        }
+        return dias;
+    }
+
     public static Optional<Prioridad> desde(String valor) {
         for (Prioridad prioridad : values()) {
             if (prioridad.name().equals(valor)) {
