@@ -15,7 +15,7 @@ import ar.edu.utn.tup.solicitudes.dominio.TipoSolicitud;
 import ar.edu.utn.tup.solicitudes.persistencia.SolicitudRepository;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 public class ReporteService {
 
     private final SolicitudRepository solicitudRepository;

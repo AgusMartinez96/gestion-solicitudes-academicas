@@ -21,7 +21,7 @@ import ar.edu.utn.tup.solicitudes.persistencia.ResponsableRepository;
 import ar.edu.utn.tup.solicitudes.persistencia.SolicitudRepository;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 public class SolicitudService {
 
     private final SolicitudRepository solicitudRepository;
@@ -39,6 +39,7 @@ public class SolicitudService {
         this.clock = clock;
     }
 
+    @Transactional
     public SolicitudDetalle registrar(PedidoRegistro pedido) {
         NuevaSolicitud nueva = pedido.validar();
         Estudiante estudiante = buscarEstudiante(nueva.legajo());
@@ -61,6 +62,7 @@ public class SolicitudService {
         return aDetalles(coincidentes);
     }
 
+    @Transactional
     public SolicitudDetalle cambiarEstado(Long solicitudId, String textoEstado) {
         Solicitud solicitud = buscarSolicitud(solicitudId);
         EstadoSolicitud nuevoEstado = EstadoSolicitud.parsear(textoEstado);
@@ -72,6 +74,7 @@ public class SolicitudService {
         return aDetalle(guardada);
     }
 
+    @Transactional
     public SolicitudDetalle asignarResponsable(Long solicitudId, Long responsableId) {
         Solicitud solicitud = buscarSolicitud(solicitudId);
         solicitud.verificarQueAdmiteResponsable();
