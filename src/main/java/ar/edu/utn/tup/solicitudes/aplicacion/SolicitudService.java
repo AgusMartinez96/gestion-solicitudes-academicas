@@ -38,18 +38,18 @@ public class SolicitudService {
         this.clock = clock;
     }
 
-    public Solicitud registrar(PedidoRegistro pedido) {
+    public SolicitudDetalle registrar(PedidoRegistro pedido) {
         NuevaSolicitud nueva = NuevaSolicitud.desde(pedido);
         Estudiante estudiante = buscarEstudiante(nueva.legajo());
         Solicitud solicitud = armarSolicitud(nueva, estudiante, ahoraTruncado());
-        return solicitudRepository.save(solicitud);
+        return aDetalle(solicitudRepository.save(solicitud));
     }
 
-    public Solicitud obtener(Long solicitudId) {
-        return buscarSolicitud(solicitudId);
+    public SolicitudDetalle obtener(Long solicitudId) {
+        return aDetalle(buscarSolicitud(solicitudId));
     }
 
-    public List<Solicitud> buscar(FiltroSolicitudes filtro) {
+    public List<SolicitudDetalle> buscar(FiltroSolicitudes filtro) {
         List<Solicitud> coincidentes = new ArrayList<>();
         for (Solicitud solicitud : solicitudRepository.findAll()) {
             if (filtro.coincideCon(solicitud)) {
@@ -57,10 +57,10 @@ public class SolicitudService {
             }
         }
         coincidentes.sort(Comparator.comparing(Solicitud::getId));
-        return coincidentes;
+        return aDetalles(coincidentes);
     }
 
-    public Solicitud cambiarEstado(Long solicitudId, String textoEstado) {
+    public SolicitudDetalle cambiarEstado(Long solicitudId, String textoEstado) {
         Solicitud solicitud = buscarSolicitud(solicitudId);
         EstadoSolicitud nuevoEstado = EstadoSolicitud.parsear(textoEstado);
         solicitud.cambiarEstado(nuevoEstado, ahoraTruncado());
@@ -68,15 +68,15 @@ public class SolicitudService {
         if (guardada.getEstado().esResolucion()) {
             notificador.notificarCierre(guardada);
         }
-        return guardada;
+        return aDetalle(guardada);
     }
 
-    public Solicitud asignarResponsable(Long solicitudId, Long responsableId) {
+    public SolicitudDetalle asignarResponsable(Long solicitudId, Long responsableId) {
         Solicitud solicitud = buscarSolicitud(solicitudId);
         solicitud.verificarQueAdmiteResponsable();
         Responsable responsable = buscarResponsable(responsableId);
         solicitud.asignarResponsable(responsable, ahoraTruncado());
-        return solicitudRepository.save(solicitud);
+        return aDetalle(solicitudRepository.save(solicitud));
     }
 
     private Solicitud buscarSolicitud(Long solicitudId) {
@@ -96,6 +96,16 @@ public class SolicitudService {
             throw new RecursoNoEncontradoException("Responsable no encontrado: " + responsableId);
         }
         return responsable;
+    }
+
+    private SolicitudDetalle aDetalle(Solicitud solicitud) {
+        return new SolicitudDetalle(solicitud, solicitud.estaVencida(LocalDateTime.now(clock)));
+    }
+
+    private List<SolicitudDetalle> aDetalles(List<Solicitud> solicitudes) {
+        LocalDateTime ahora = LocalDateTime.now(clock);
+        return solicitudes.stream()
+                .map(solicitud -> new SolicitudDetalle(solicitud, solicitud.estaVencida(ahora))).toList();
     }
 
     private LocalDateTime ahoraTruncado() {
