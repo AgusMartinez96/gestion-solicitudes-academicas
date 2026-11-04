@@ -86,7 +86,17 @@ public class Solicitud {
         this.fechaActualizacion = ahora;
     }
 
+    public void verificarQueAdmiteResponsable() {
+        if (estaCerrada()) {
+            throw new ReglaDeNegocioException("La solicitud está cerrada: " + id);
+        }
+    }
+
     public void asignarResponsable(Responsable nuevoResponsable, LocalDateTime ahora) {
+        verificarQueAdmiteResponsable();
+        if (!nuevoResponsable.isActivo()) {
+            throw new ReglaDeNegocioException("El responsable no está activo: " + nuevoResponsable.getId());
+        }
         this.responsable = nuevoResponsable;
         if (estado == EstadoSolicitud.PENDIENTE) {
             cambiarEstado(EstadoSolicitud.EN_ANALISIS, ahora);

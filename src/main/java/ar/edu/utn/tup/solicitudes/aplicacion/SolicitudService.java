@@ -16,7 +16,6 @@ import ar.edu.utn.tup.solicitudes.dominio.Responsable;
 import ar.edu.utn.tup.solicitudes.dominio.Solicitud;
 import ar.edu.utn.tup.solicitudes.dominio.excepciones.DatoInvalidoException;
 import ar.edu.utn.tup.solicitudes.dominio.excepciones.RecursoNoEncontradoException;
-import ar.edu.utn.tup.solicitudes.dominio.excepciones.ReglaDeNegocioException;
 import ar.edu.utn.tup.solicitudes.persistencia.EstudianteRepository;
 import ar.edu.utn.tup.solicitudes.persistencia.ResponsableRepository;
 import ar.edu.utn.tup.solicitudes.persistencia.SolicitudRepository;
@@ -74,10 +73,8 @@ public class SolicitudService {
 
     public Solicitud asignarResponsable(Long solicitudId, Long responsableId) {
         Solicitud solicitud = buscarSolicitud(solicitudId);
-        if (solicitud.estaCerrada()) {
-            throw new ReglaDeNegocioException("La solicitud está cerrada: " + solicitudId);
-        }
-        Responsable responsable = buscarResponsableActivo(responsableId);
+        solicitud.verificarQueAdmiteResponsable();
+        Responsable responsable = buscarResponsable(responsableId);
         solicitud.asignarResponsable(responsable, ahoraTruncado());
         return solicitudRepository.save(solicitud);
     }
@@ -92,14 +89,11 @@ public class SolicitudService {
                 () -> new RecursoNoEncontradoException("Estudiante no encontrado: " + legajo));
     }
 
-    private Responsable buscarResponsableActivo(Long responsableId) {
+    private Responsable buscarResponsable(Long responsableId) {
         Responsable responsable = responsableId == null ? null
                 : responsableRepository.findById(responsableId).orElse(null);
         if (responsable == null) {
             throw new RecursoNoEncontradoException("Responsable no encontrado: " + responsableId);
-        }
-        if (!responsable.isActivo()) {
-            throw new ReglaDeNegocioException("El responsable no está activo: " + responsableId);
         }
         return responsable;
     }
