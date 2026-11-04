@@ -411,3 +411,41 @@
 - **Pasos seguros aplicados:** (1) mover los archivos con `git mv`; (2) reemplazar los nombres de paquete con una sola sustitución sobre `src/main`; (3) borrar el import redundante; (4) compilar y ejecutar los tests; (5) levantar la app y repetir las pruebas HTTP (GET con y sin responsable, `PATCH` de estado y responsable, `POST`, reporte, soporte), sin errores de sesión en el log.
 - **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`. `src/test/` no se modificó.
 - **Commit:** `3b32287`
+
+---
+
+## R07 — Replace Error Code with Exception + manejo centralizado
+
+- **Smell(s):** S10 (manejo de errores deficiente) · **Principio:** Clean Code (excepciones en lugar de códigos de retorno; sin `catch` genérico), SRP (la traducción a HTTP vive en un único lugar).
+- **Motivación:** cada endpoint envolvía todo en `try { ... } catch (Exception e)`; los errores de negocio eran `new RuntimeException("404|Estudiante no encontrado: ...")` y `procesar(Exception)` parseaba el prefijo para elegir el código HTTP. Un `NullPointerException` real se confundía con un error de negocio y salía como un 500 con `Error: null`.
+- **Antes:**
+  - `SC:55`, `59`, `73`, `234`, `302` (`estado-inicial`) — el código HTTP dentro del texto:
+    ```java
+    throw new RuntimeException("404|Estudiante no encontrado: " + legajo);
+    ```
+  - `SC:120`, `157`, `223`, `281`, `339`, `384` — `catch (Exception e) { return procesar(e); }` en cada endpoint (6 violaciones PMD `AvoidCatchingGenericException`).
+  - `SC:417-432` — `procesar` parseando `"404|"`, `"409|"`, `"400|"` y devolviendo `text/plain`.
+- **Después:**
+  - `dominio/excepciones/` — `DatoInvalidoException` (→ 400), `RecursoNoEncontradoException` (→ 404) y `ReglaDeNegocioException` (→ 409), todas con el mismo texto de mensaje que antes (sin prefijo).
+  - `web/dto/ErrorResponse.java` — `record ErrorResponse(int status, String error, String mensaje, LocalDateTime timestamp)`.
+  - `web/ManejadorGlobalErrores.java` — único `@RestControllerAdvice`: un `@ExceptionHandler` por excepción propia y uno para `Exception` (error inesperado).
+  - `SolicitudService`, `SolicitudMapper` y `Solicitud` lanzan las excepciones propias. Además, **la regla de transición y la de "requiere responsable" pasaron a `Solicitud.cambiarEstado(...)`**, que ahora protege su propia invariante (en R03 solo había mutadores porque todavía no existían las excepciones de dominio).
+  - `web/SolicitudController` quedó sin `try/catch` ni `procesar`, y con tipos de retorno reales (`SolicitudResponse`, `List<SolicitudResponse>`, `201` con `@ResponseStatus`). El controller pasó de 111 a 71 líneas.
+  - Resultado: `grep` en `src/main` de `catch (Exception`, `new RuntimeException(` y de los prefijos `"404|"`, `"409|"`, `"400|"` → **0 coincidencias**.
+- **Cambio externo intencional (el único permitido por `CLAUDE.md` §3.2): el cuerpo de error pasa de texto plano a JSON.** Código HTTP y mensaje son idénticos.
+
+  | | Antes (v1, `docs/evidencias/antes/capturas/03-error-409.png`) | Después (v2) |
+  |---|---|---|
+  | Código | `409` | `409` |
+  | `Content-Type` | `text/plain;charset=UTF-8` | `application/json;charset=UTF-8` |
+  | Cuerpo | `Error: Transición inválida: CANCELADA -> EN_ANALISIS` | `{"status":409,"error":"Conflict","mensaje":"Transición inválida: CANCELADA -> EN_ANALISIS","timestamp":"2026-11-03T22:14:07"}` |
+
+  La captura de la v1 muestra el cuerpo en texto plano y `content-type: text/plain;charset=UTF-8`; los clientes de la v2 reciben el mismo tipo de contenido (JSON) para éxitos y errores. Los tests de caracterización verifican el código HTTP y que el cuerpo **contenga** el mensaje, por eso pasan sin modificarse. Para que esa verificación funcione con tildes, el `Content-Type` de error declara `charset=UTF-8` explícitamente.
+- **Errores de framework (JSON malformado, id no numérico, ruta inexistente):** `ManejadorGlobalErrores` extiende `ResponseEntityExceptionHandler`, de modo que los errores que Spring ya resolvía con 400/404 **conservan su código** y ahora usan el mismo formato `ErrorResponse`. Un `@ExceptionHandler(Exception.class)` a secas habría convertido esos casos en 500. El mensaje se toma del `ProblemDetail` de Spring (por ejemplo `Failed to read request`) y nunca de la excepción interna.
+- **Errores inesperados (500):** se registran con `LOG.error` (con la traza) y se responden con `{"status":500,"error":"Internal Server Error","mensaje":"Error interno del servidor",...}`, **sin exponer detalles internos**. Comprobado forzando temporalmente una `IllegalStateException("detalle-interno-secreto jdbc:h2:mem")` en un endpoint (el cambio se revirtió y no se incluyó en el commit): el cliente recibió solo el mensaje genérico y el texto secreto apareció únicamente en el log del servidor.
+- **Verificación por HTTP (25 llamadas, comparadas con la línea base):** las 11 llamadas de éxito son idénticas byte a byte; las 14 llamadas de error mantienen su código HTTP (400, 404, 409 y los tres errores de framework) y solo cambian el `Content-Type` y la forma del cuerpo.
+- **Swagger:** con el `try/catch` fuera de los controllers, los métodos devuelven tipos reales. `GET /v3/api-docs` ahora expone para los 8 endpoints un esquema tipado (`SolicitudResponse` en los 5 de solicitudes con sus 11 campos en el orden del contrato, `ReporteResumenResponse`, `EstudianteResponse`, `ResponsableResponse`), y `POST /api/solicitudes` documenta el `201`. Esto cierra la verificación del "Example Value" que quedó pendiente en R05 parte B: ya no es `{}`.
+- **Pasos seguros aplicados:** (1) crear las excepciones y el handler sin usarlos; (2) reemplazar `RuntimeException("4xx|...")` por la excepción correspondiente, una capa por vez (mapper, servicio, entidad); (3) recién entonces quitar los `try/catch` y `procesar` del controller; (4) correr tests y repetir la batería HTTP.
+- **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`.
+- **Fuera de alcance de R07:** `timestamp` usa `LocalDateTime.now()` hasta R08 (Clock); `Solicitud.asignarResponsable` no valida cerrada/inactivo: esas reglas siguen en el servicio porque el contrato exige el orden 409 (cerrada) → 404 (responsable) → 409 (inactivo), que intercala una búsqueda entre dos reglas.
+- **Commit:** _(se completa al terminar la tanda)_

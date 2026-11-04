@@ -13,6 +13,9 @@ import ar.edu.utn.tup.solicitudes.dominio.EstadoSolicitud;
 import ar.edu.utn.tup.solicitudes.dominio.Estudiante;
 import ar.edu.utn.tup.solicitudes.dominio.Responsable;
 import ar.edu.utn.tup.solicitudes.dominio.Solicitud;
+import ar.edu.utn.tup.solicitudes.dominio.excepciones.DatoInvalidoException;
+import ar.edu.utn.tup.solicitudes.dominio.excepciones.RecursoNoEncontradoException;
+import ar.edu.utn.tup.solicitudes.dominio.excepciones.ReglaDeNegocioException;
 import ar.edu.utn.tup.solicitudes.persistencia.EstudianteRepository;
 import ar.edu.utn.tup.solicitudes.persistencia.ResponsableRepository;
 import ar.edu.utn.tup.solicitudes.persistencia.SolicitudRepository;
@@ -68,12 +71,6 @@ public class SolicitudService {
     public Solicitud cambiarEstado(Long id, String estado) {
         Solicitud s = buscarSolicitud(id);
         EstadoSolicitud nuevo = parsearEstado(estado);
-        if (!s.getEstado().puedeTransicionarA(nuevo)) {
-            throw new RuntimeException("409|Transición inválida: " + s.getEstado() + " -> " + nuevo);
-        }
-        if (nuevo.requiereResponsable() && !s.tieneResponsable()) {
-            throw new RuntimeException("409|La solicitud requiere un responsable asignado para pasar a " + nuevo);
-        }
         s.cambiarEstado(nuevo, ahoraTruncado());
         s = solicitudRepository.save(s);
         if (s.getEstado().esResolucion()) {
@@ -86,7 +83,7 @@ public class SolicitudService {
     public Solicitud asignarResponsable(Long id, Long responsableId) {
         Solicitud s = buscarSolicitud(id);
         if (s.estaCerrada()) {
-            throw new RuntimeException("409|La solicitud está cerrada: " + id);
+            throw new ReglaDeNegocioException("La solicitud está cerrada: " + id);
         }
         Responsable resp = buscarResponsableActivo(responsableId);
         s.asignarResponsable(resp, ahoraTruncado());
@@ -96,7 +93,7 @@ public class SolicitudService {
     private Solicitud buscarSolicitud(Long id) {
         Solicitud s = solicitudRepository.findById(id).orElse(null);
         if (s == null) {
-            throw new RuntimeException("404|Solicitud no encontrada: " + id);
+            throw new RecursoNoEncontradoException("Solicitud no encontrada: " + id);
         }
         return s;
     }
@@ -104,7 +101,7 @@ public class SolicitudService {
     private Estudiante buscarEstudiante(String legajo) {
         Estudiante est = estudianteRepository.findByLegajo(legajo).orElse(null);
         if (est == null) {
-            throw new RuntimeException("404|Estudiante no encontrado: " + legajo);
+            throw new RecursoNoEncontradoException("Estudiante no encontrado: " + legajo);
         }
         return est;
     }
@@ -112,17 +109,17 @@ public class SolicitudService {
     private Responsable buscarResponsableActivo(Long idResp) {
         Responsable resp = idResp == null ? null : responsableRepository.findById(idResp).orElse(null);
         if (resp == null) {
-            throw new RuntimeException("404|Responsable no encontrado: " + idResp);
+            throw new RecursoNoEncontradoException("Responsable no encontrado: " + idResp);
         }
         if (!resp.isActivo()) {
-            throw new RuntimeException("409|El responsable no está activo: " + idResp);
+            throw new ReglaDeNegocioException("El responsable no está activo: " + idResp);
         }
         return resp;
     }
 
     private EstadoSolicitud parsearEstado(String texto) {
         return EstadoSolicitud.desde(texto)
-                .orElseThrow(() -> new RuntimeException("400|Estado inválido: " + texto));
+                .orElseThrow(() -> new DatoInvalidoException("Estado inválido: " + texto));
     }
 
     private LocalDateTime ahoraTruncado() {

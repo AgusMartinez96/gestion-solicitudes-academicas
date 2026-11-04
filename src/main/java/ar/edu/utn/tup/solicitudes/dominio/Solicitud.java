@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import ar.edu.utn.tup.solicitudes.dominio.excepciones.ReglaDeNegocioException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -74,6 +75,13 @@ public class Solicitud {
     }
 
     public void cambiarEstado(EstadoSolicitud nuevo, LocalDateTime ahora) {
+        if (!estado.puedeTransicionarA(nuevo)) {
+            throw new ReglaDeNegocioException("Transición inválida: " + estado + " -> " + nuevo);
+        }
+        if (nuevo.requiereResponsable() && !tieneResponsable()) {
+            throw new ReglaDeNegocioException(
+                    "La solicitud requiere un responsable asignado para pasar a " + nuevo);
+        }
         this.estado = nuevo;
         this.fechaActualizacion = ahora;
     }

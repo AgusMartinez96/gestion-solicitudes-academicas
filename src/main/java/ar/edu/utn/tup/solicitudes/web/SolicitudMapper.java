@@ -13,6 +13,7 @@ import ar.edu.utn.tup.solicitudes.dominio.Prioridad;
 import ar.edu.utn.tup.solicitudes.dominio.Responsable;
 import ar.edu.utn.tup.solicitudes.dominio.Solicitud;
 import ar.edu.utn.tup.solicitudes.dominio.TipoSolicitud;
+import ar.edu.utn.tup.solicitudes.dominio.excepciones.DatoInvalidoException;
 import ar.edu.utn.tup.solicitudes.web.dto.EstudianteResponse;
 import ar.edu.utn.tup.solicitudes.web.dto.EstudianteResumen;
 import ar.edu.utn.tup.solicitudes.web.dto.RegistrarSolicitudRequest;
@@ -33,17 +34,17 @@ public class SolicitudMapper {
 
     public TipoSolicitud aTipo(String texto) {
         return TipoSolicitud.desde(texto)
-                .orElseThrow(() -> new RuntimeException("400|Tipo de solicitud inválido: " + texto));
+                .orElseThrow(() -> new DatoInvalidoException("Tipo de solicitud inválido: " + texto));
     }
 
     public EstadoSolicitud aEstado(String texto) {
         return EstadoSolicitud.desde(texto)
-                .orElseThrow(() -> new RuntimeException("400|Estado inválido: " + texto));
+                .orElseThrow(() -> new DatoInvalidoException("Estado inválido: " + texto));
     }
 
     public Prioridad aPrioridad(String texto) {
         return Prioridad.desde(texto)
-                .orElseThrow(() -> new RuntimeException("400|Prioridad inválida: " + texto));
+                .orElseThrow(() -> new DatoInvalidoException("Prioridad inválida: " + texto));
     }
 
     public SolicitudResponse aResponse(Solicitud solicitud) {
@@ -93,7 +94,7 @@ public class SolicitudMapper {
 
     private void validarDescripcion(String descripcion) {
         if (descripcion == null || descripcion.length() < 10 || descripcion.length() > 500) {
-            throw new RuntimeException("400|La descripción debe tener entre 10 y 500 caracteres");
+            throw new DatoInvalidoException("La descripción debe tener entre 10 y 500 caracteres");
         }
     }
 }
