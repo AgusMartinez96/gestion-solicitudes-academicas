@@ -1,53 +1,36 @@
 package ar.edu.utn.tup.solicitudes.web;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import ar.edu.utn.tup.solicitudes.dominio.Estudiante;
-import ar.edu.utn.tup.solicitudes.dominio.Responsable;
 import ar.edu.utn.tup.solicitudes.persistencia.EstudianteRepository;
 import ar.edu.utn.tup.solicitudes.persistencia.ResponsableRepository;
+import ar.edu.utn.tup.solicitudes.web.dto.EstudianteResponse;
+import ar.edu.utn.tup.solicitudes.web.dto.ResponsableResponse;
 
 @RestController
 public class SoporteController {
 
-    @Autowired
-    private EstudianteRepository estudianteRepository;
+    private final EstudianteRepository estudianteRepository;
+    private final ResponsableRepository responsableRepository;
+    private final SolicitudMapper mapper;
 
-    @Autowired
-    private ResponsableRepository responsableRepository;
+    public SoporteController(EstudianteRepository estudianteRepository,
+            ResponsableRepository responsableRepository, SolicitudMapper mapper) {
+        this.estudianteRepository = estudianteRepository;
+        this.responsableRepository = responsableRepository;
+        this.mapper = mapper;
+    }
 
     @GetMapping("/api/estudiantes")
-    public List<Map<String, Object>> estudiantes() {
-        List<Map<String, Object>> lista = new ArrayList<>();
-        for (Estudiante e : estudianteRepository.findAll()) {
-            Map<String, Object> m = new LinkedHashMap<>();
-            m.put("id", e.getId());
-            m.put("legajo", e.getLegajo());
-            m.put("nombre", e.getNombre());
-            m.put("email", e.getEmail());
-            lista.add(m);
-        }
-        return lista;
+    public List<EstudianteResponse> estudiantes() {
+        return estudianteRepository.findAll().stream().map(mapper::aResponse).toList();
     }
 
     @GetMapping("/api/responsables")
-    public List<Map<String, Object>> responsables() {
-        List<Map<String, Object>> lista = new ArrayList<>();
-        for (Responsable r : responsableRepository.findAll()) {
-            Map<String, Object> m = new LinkedHashMap<>();
-            m.put("id", r.getId());
-            m.put("nombre", r.getNombre());
-            m.put("area", r.getArea());
-            m.put("activo", r.isActivo());
-            lista.add(m);
-        }
-        return lista;
+    public List<ResponsableResponse> responsables() {
+        return responsableRepository.findAll().stream().map(mapper::aResponse).toList();
     }
 }

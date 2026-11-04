@@ -1,10 +1,7 @@
 package ar.edu.utn.tup.solicitudes.web;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
@@ -16,7 +13,13 @@ import ar.edu.utn.tup.solicitudes.dominio.Prioridad;
 import ar.edu.utn.tup.solicitudes.dominio.Responsable;
 import ar.edu.utn.tup.solicitudes.dominio.Solicitud;
 import ar.edu.utn.tup.solicitudes.dominio.TipoSolicitud;
+import ar.edu.utn.tup.solicitudes.web.dto.EstudianteResponse;
+import ar.edu.utn.tup.solicitudes.web.dto.EstudianteResumen;
 import ar.edu.utn.tup.solicitudes.web.dto.RegistrarSolicitudRequest;
+import ar.edu.utn.tup.solicitudes.web.dto.ReporteResumenResponse;
+import ar.edu.utn.tup.solicitudes.web.dto.ResponsableResponse;
+import ar.edu.utn.tup.solicitudes.web.dto.ResponsableResumen;
+import ar.edu.utn.tup.solicitudes.web.dto.SolicitudResponse;
 
 @Component
 public class SolicitudMapper {
@@ -43,61 +46,49 @@ public class SolicitudMapper {
                 .orElseThrow(() -> new RuntimeException("400|Prioridad inválida: " + texto));
     }
 
-    public Map<String, Object> aMap(Solicitud s) {
-        Map<String, Object> res = new LinkedHashMap<>();
-        res.put("id", s.getId());
-        res.put("tipo", s.getTipo().name());
-        res.put("descripcion", s.getDescripcion());
-        res.put("prioridad", s.getPrioridad().name());
-        res.put("estado", s.getEstado().name());
-        res.put("fechaCreacion", s.getFechaCreacion());
-        res.put("fechaVencimiento", s.getFechaVencimiento());
-        res.put("fechaActualizacion", s.getFechaActualizacion());
-        res.put("vencida", s.estaVencida(LocalDateTime.now()));
-        res.put("estudiante", aMapEstudiante(s.getEstudiante()));
-        res.put("responsable", aMapResponsable(s.getResponsable()));
-        return res;
+    public SolicitudResponse aResponse(Solicitud solicitud) {
+        return new SolicitudResponse(
+                solicitud.getId(),
+                solicitud.getTipo(),
+                solicitud.getDescripcion(),
+                solicitud.getPrioridad(),
+                solicitud.getEstado(),
+                solicitud.getFechaCreacion(),
+                solicitud.getFechaVencimiento(),
+                solicitud.getFechaActualizacion(),
+                solicitud.estaVencida(LocalDateTime.now()),
+                aResumen(solicitud.getEstudiante()),
+                aResumen(solicitud.getResponsable()));
     }
 
-    public List<Map<String, Object>> aMap(List<Solicitud> solicitudes) {
-        List<Map<String, Object>> salida = new ArrayList<>();
-        for (Solicitud s : solicitudes) {
-            salida.add(aMap(s));
-        }
-        return salida;
+    public List<SolicitudResponse> aResponse(List<Solicitud> solicitudes) {
+        return solicitudes.stream().map(this::aResponse).toList();
     }
 
-    public Map<String, Object> aMap(ReporteResumen resumen) {
-        Map<String, Object> res = new LinkedHashMap<>();
-        res.put("total", resumen.total());
-        res.put("porEstado", nombresConConteo(resumen.porEstado()));
-        res.put("porTipo", nombresConConteo(resumen.porTipo()));
-        res.put("vencidas", resumen.vencidas());
-        return res;
+    public ReporteResumenResponse aResponse(ReporteResumen resumen) {
+        return new ReporteResumenResponse(resumen.total(), resumen.porEstado(), resumen.porTipo(),
+                resumen.vencidas());
     }
 
-    private Map<String, Integer> nombresConConteo(Map<? extends Enum<?>, Integer> conteos) {
-        Map<String, Integer> nombres = new LinkedHashMap<>();
-        conteos.forEach((constante, cantidad) -> nombres.put(constante.name(), cantidad));
-        return nombres;
+    public EstudianteResponse aResponse(Estudiante estudiante) {
+        return new EstudianteResponse(estudiante.getId(), estudiante.getLegajo(), estudiante.getNombre(),
+                estudiante.getEmail());
     }
 
-    private Map<String, Object> aMapEstudiante(Estudiante est) {
-        Map<String, Object> e = new LinkedHashMap<>();
-        e.put("legajo", est.getLegajo());
-        e.put("nombre", est.getNombre());
-        return e;
+    public ResponsableResponse aResponse(Responsable responsable) {
+        return new ResponsableResponse(responsable.getId(), responsable.getNombre(), responsable.getArea(),
+                responsable.isActivo());
     }
 
-    private Map<String, Object> aMapResponsable(Responsable resp) {
-        if (resp == null) {
+    private EstudianteResumen aResumen(Estudiante estudiante) {
+        return new EstudianteResumen(estudiante.getLegajo(), estudiante.getNombre());
+    }
+
+    private ResponsableResumen aResumen(Responsable responsable) {
+        if (responsable == null) {
             return null;
         }
-        Map<String, Object> r = new LinkedHashMap<>();
-        r.put("id", resp.getId());
-        r.put("nombre", resp.getNombre());
-        r.put("area", resp.getArea());
-        return r;
+        return new ResponsableResumen(responsable.getId(), responsable.getNombre(), responsable.getArea());
     }
 
     private void validarDescripcion(String descripcion) {

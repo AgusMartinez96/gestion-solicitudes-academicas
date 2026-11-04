@@ -1,11 +1,10 @@
 package ar.edu.utn.tup.solicitudes.web;
 
-import java.util.Map;
-
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import ar.edu.utn.tup.solicitudes.aplicacion.ReporteService;
+import ar.edu.utn.tup.solicitudes.web.dto.ReporteResumenResponse;
 
 @RestController
 public class ReporteController {
@@ -19,7 +18,7 @@ public class ReporteController {
     }
 
     @GetMapping("/api/reportes/resumen")
-    public Map<String, Object> resumen() {
-        return mapper.aMap(reporteService.resumen());
+    public ReporteResumenResponse resumen() {
+        return mapper.aResponse(reporteService.resumen());
     }
 }

@@ -38,7 +38,7 @@ public class SolicitudController {
             System.out.println("DEBUG crear solicitud legajo=" + request.legajo() + " tipo=" + request.tipo());
             NuevaSolicitud nueva = mapper.aNuevaSolicitud(request);
             Solicitud s = solicitudService.registrar(nueva);
-            return ResponseEntity.status(HttpStatus.CREATED).body(mapper.aMap(s));
+            return ResponseEntity.status(HttpStatus.CREATED).body(mapper.aResponse(s));
         } catch (Exception e) {
             return procesar(e);
         }
@@ -47,7 +47,7 @@ public class SolicitudController {
     @GetMapping("/api/solicitudes/{id}")
     public ResponseEntity<Object> obtener(@PathVariable("id") Long id) {
         try {
-            return ResponseEntity.ok(mapper.aMap(solicitudService.obtener(id)));
+            return ResponseEntity.ok(mapper.aResponse(solicitudService.obtener(id)));
         } catch (Exception e) {
             return procesar(e);
         }
@@ -65,7 +65,7 @@ public class SolicitudController {
                     prioridad == null ? null : mapper.aPrioridad(prioridad),
                     legajo);
             List<Solicitud> encontradas = solicitudService.buscar(filtro);
-            return ResponseEntity.ok(mapper.aMap(encontradas));
+            return ResponseEntity.ok(mapper.aResponse(encontradas));
         } catch (Exception e) {
             return procesar(e);
         }
@@ -75,7 +75,7 @@ public class SolicitudController {
     public ResponseEntity<Object> cambiarEstado(@PathVariable("id") Long id,
             @RequestBody CambiarEstadoRequest request) {
         try {
-            return ResponseEntity.ok(mapper.aMap(solicitudService.cambiarEstado(id, request.estado())));
+            return ResponseEntity.ok(mapper.aResponse(solicitudService.cambiarEstado(id, request.estado())));
         } catch (Exception e) {
             return procesar(e);
         }
@@ -85,7 +85,7 @@ public class SolicitudController {
     public ResponseEntity<Object> asignarResponsable(@PathVariable("id") Long id,
             @RequestBody AsignarResponsableRequest request) {
         try {
-            return ResponseEntity.ok(mapper.aMap(solicitudService.asignarResponsable(id, request.responsableId())));
+            return ResponseEntity.ok(mapper.aResponse(solicitudService.asignarResponsable(id, request.responsableId())));
         } catch (Exception e) {
             return procesar(e);
         }

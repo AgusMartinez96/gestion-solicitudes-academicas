@@ -302,6 +302,21 @@
 - **Fuera de alcance de R05:** las respuestas siguen siendo `Map<String, Object>` (DTOs de respuesta tipados, y por ende el "Example Value" de Swagger, quedan para después); el contrato de errores sigue siendo el de la v1 (R07).
 - **Commit:** `f4d44c2`
 
+### R05 · Parte B — DTOs de respuesta tipados
+
+- **Smell(s):** S05 (falta de contrato tipado: `Map<String, Object>` como respuesta) · **Principio:** Clean Code (tipos con nombre en lugar de estructuras genéricas); contrato explícito para la documentación de la API.
+- **Motivación:** la parte A tipó las entradas, pero las respuestas seguían siendo `Map<String, Object>` armados a mano en el mapper. Springdoc no puede inferir el esquema de un `Map<String, Object>`, y por eso el "Example Value" de Swagger salía `{}` (`docs/evidencias/antes/capturas/06-example-value-vacio.png`).
+- **Antes (`3b32287`):** `SolicitudMapper.aMap(...)` devolvía `Map<String, Object>` / `List<Map<String, Object>>` (con `LinkedHashMap` y `put` campo por campo) para solicitudes y reporte, y `SoporteController` armaba sus propios `Map` para estudiantes y responsables.
+- **Después:**
+  - `web/dto/` — records `SolicitudResponse` (con `EstudianteResumen` y `ResponsableResumen` anidados), `ReporteResumenResponse`, `EstudianteResponse` y `ResponsableResponse`. El orden de los componentes del record es el orden del JSON; `tipo`, `prioridad` y `estado` son enums (se serializan por nombre, igual que antes).
+  - `web/SolicitudMapper.java` — `aResponse(Solicitud)`, `aResponse(List<Solicitud>)`, `aResponse(ReporteResumen)`, `aResponse(Estudiante)` y `aResponse(Responsable)` reemplazan a los `aMap`.
+  - `ReporteController` devuelve `ReporteResumenResponse`; `SoporteController` devuelve `List<EstudianteResponse>` y `List<ResponsableResponse>` mapeados por `SolicitudMapper` (se aprovechó para pasarlo a inyección por constructor).
+- **JSON de salida idéntico (verificado, no supuesto):** antes de tocar el código se capturó una línea base de **25 llamadas HTTP** con la app levantada (éxitos, 400/404/409 y errores de framework) y se repitió después del cambio, normalizando solo los timestamps (relativos al arranque). `diff` entre ambas capturas: **0 diferencias**, lo que cubre nombres, orden de campos, `null` presentes en `fechaActualizacion` y `responsable`, fechas ISO sin decimales, y las claves de `porEstado`/`porTipo` completas y en el orden del contrato.
+- **Swagger — resultado parcial, y por qué:** `GET /v3/api-docs` ya muestra esquemas tipados para `reporte-controller` (`ReporteResumenResponse`) y `soporte-controller` (`EstudianteResponse`, `ResponsableResponse`); el "Example Value" de esos endpoints deja de ser `{}`. En cambio, los 5 endpoints de `solicitud-controller` siguen mostrando `object`: sus métodos devuelven `ResponseEntity<Object>` porque el bloque `catch (Exception)` responde con texto plano, y mientras eso exista el tipo de retorno no puede ser `SolicitudResponse`. Se resuelve en R07, cuando el manejo de errores sale del controller; la verificación del "Example Value" de `SolicitudResponse` queda documentada en la ficha de R07.
+- **Pasos seguros aplicados:** (1) capturar la línea base HTTP; (2) crear los records sin usarlos; (3) cambiar el mapper y los tres controllers; (4) ejecutar los tests; (5) repetir la captura y comparar con `diff`.
+- **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`; diff HTTP de 25 llamadas: sin diferencias.
+- **Commit:** _(se completa al terminar la tanda)_
+
 ---
 
 ## R06 — Extract Class
