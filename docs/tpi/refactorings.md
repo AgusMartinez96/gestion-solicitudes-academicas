@@ -251,3 +251,53 @@
 - **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`.
 - **Fuera de alcance de R04:** los números `2, 3, 5, 7, 15` y el `/ 2` siguen como literales en el enum (son datos del dominio; el `/ 2` pasará a una constante en R09).
 - **Commit:** _(se completa al terminar la tanda)_
+
+---
+
+## R05 — Introduce Parameter Object
+
+- **Smell(s):** S05 (Long Parameter List + Data Clumps; `Map<String,Object>` como cuerpo) · **Principio:** Clean Code (pocos parámetros, datos que viajan juntos en un solo objeto con nombre).
+- **Motivación:** `armarSolicitud` recibía 7 parámetros (4 `String` seguidos), `filtrar` recibía 4 filtros sueltos, `Utils.validar` recibía 4 datos que siempre viajan juntos (ya eliminada en R04) y los tres endpoints de escritura recibían un `Map<String, Object>` casteado a mano.
+- **Antes (`bbe0574`, commit de R04):**
+  - `SC:50`, `113`, `138` — cuerpos como mapas sin tipo, con casteos:
+    ```java
+    public ResponseEntity<Object> crear(@RequestBody Map<String, Object> body) {
+        String legajo = (String) body.get("legajo");
+        ...
+    Object dato = body.get("responsableId");
+    Long idResp = dato == null ? null : Long.valueOf(dato.toString());
+    ```
+  - `SC:318-319` — `armarSolicitud(String legajo, TipoSolicitud tipo, String descripcion, Prioridad prioridad, LocalDateTime creacion, int dias, Estudiante est)`.
+  - `SC:262` — `filtrar(EstadoSolicitud estado, TipoSolicitud tipo, Prioridad prioridad, String legajo)` con cuatro `if` anidados.
+- **Después:**
+  - `aplicacion/NuevaSolicitud.java` — record `(legajo, tipo, descripcion, prioridad)` ya validado y tipado; calcula `prioridadEfectiva()` (la informada o la del tipo) y `plazoDias()`.
+  - `aplicacion/FiltroSolicitudes.java` — record `(estado, tipo, prioridad, legajo)` con `coincideCon(Solicitud)`; reemplaza los 4 `if` anidados por una sola expresión.
+  - `web/dto/RegistrarSolicitudRequest.java`, `CambiarEstadoRequest.java`, `AsignarResponsableRequest.java` — records para el cuerpo de entrada (mismos nombres de campo JSON que antes).
+  - `SC:55-73` — `crear` recibe el request, lo valida y arma el objeto:
+    ```java
+    validarDescripcion(request.descripcion());
+    TipoSolicitud tipo = parsearTipo(request.tipo());
+    Prioridad prioridad = request.prioridad() == null ? null : parsearPrioridad(request.prioridad());
+    NuevaSolicitud nueva = new NuevaSolicitud(request.legajo(), tipo, request.descripcion(), prioridad);
+    Estudiante est = buscarEstudiante(nueva.legajo());
+    ...
+    Solicitud s = armarSolicitud(nueva, est, ahora);
+    ```
+  - `SC:301` — `armarSolicitud(NuevaSolicitud nueva, Estudiante est, LocalDateTime creacion)`: **3 parámetros** (antes 7). Se eliminaron `resolverPrioridad` y `calcularPlazoDias` del controller.
+  - `SC:97-101` y `SC:252-260` — `listar` construye un `FiltroSolicitudes` y `filtrar(FiltroSolicitudes)` usa `filtro.coincideCon(s)`.
+  - `SC:116` y `SC:141` — `cambiarEstado` y `asignarResponsable` reciben `CambiarEstadoRequest` y `AsignarResponsableRequest`.
+  - `SolicitudController` pasó de 348 a 330 líneas.
+- **Cómo se preserva el contrato de entrada:**
+  - Los records de request usan `String` para `tipo`, `prioridad` y `estado`, **no los enums**. Si fueran enums, un valor inválido (`"BECA"`) fallaría en la deserialización de Jackson con un error genérico de Spring. Con `String`, el valor llega hasta `parsearTipo`/`parsearPrioridad`/`parsearEstado` y produce el mismo `400` con el mismo mensaje (`Tipo de solicitud inválido: BECA`).
+  - El orden de validación se mantiene: descripción → tipo → prioridad → legajo (la prioridad se parsea solo si viene informada; la del tipo por defecto no puede fallar). Para `cambiarEstado` se mantiene: solicitud existe (404) → estado válido (400).
+  - Comprobado por HTTP con la app levantada (los 12 casos coinciden con el contrato): descripción corta + tipo inválido → `400 La descripción debe tener entre 10 y 500 caracteres`; tipo inválido + prioridad inválida → `400 Tipo de solicitud inválido: BECA`; prioridad inválida + legajo inexistente → `400 Prioridad inválida: URGENTE`; sin tipo → `400 Tipo de solicitud inválido: null`; sin descripción → `400 La descripción debe tener...`; estado `FOO` sobre solicitud `99` → `404 Solicitud no encontrada: 99`; cuerpo `{}` en estado → `400 Estado inválido: null`; `responsableId` ausente → `404 Responsable no encontrado: null`; `responsableId` como texto `"1"` → 200 (igual que antes); filtros inválidos → `400`; filtro combinado → solo la solicitud 5.
+- **Diferencias aceptadas (solo en entradas fuera del contrato):** un campo desconocido en el JSON se ignora (igual que antes); un `tipo` o `descripcion` enviado como número se convierte a texto y produce un `400` de dominio, mientras que antes provocaba un `ClassCastException` y un 500. No hay ninguna entrada válida cuyo resultado cambie.
+- **Extensión respecto del pedido:** además de los tres objetos pedidos (`RegistrarSolicitudRequest`, `NuevaSolicitud`, `FiltroSolicitudes`) se agregaron `CambiarEstadoRequest` y `AsignarResponsableRequest`, que `docs/04-diseno.md` §3 ya prevé en `web/dto/`; sin ellos quedarían dos endpoints con `Map<String, Object>` y S05 a medias.
+- **Pasos seguros aplicados:**
+  1. Crear los records sin usarlos (compila igual), directamente en sus paquetes finales (`aplicacion/`, `web/dto/`).
+  2. Cambiar la firma de un método por vez (`armarSolicitud`, `filtrar`, y cada endpoint) y dejar que el compilador marque las llamadas.
+  3. Reemplazar los `if` anidados por `coincideCon` manteniendo la misma semántica (`null` = sin filtro).
+  4. Verificar por HTTP los casos de error con entradas múltiples.
+- **Verificación:** `.\mvnw.cmd test` → `Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`.
+- **Fuera de alcance de R05:** las respuestas siguen siendo `Map<String, Object>` (DTOs de respuesta tipados, y por ende el "Example Value" de Swagger, quedan para después); el contrato de errores sigue siendo el de la v1 (R07).
+- **Commit:** _(se completa al terminar la tanda)_

@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import ar.edu.utn.tup.solicitudes.aplicacion.FiltroSolicitudes;
+import ar.edu.utn.tup.solicitudes.aplicacion.NuevaSolicitud;
 import ar.edu.utn.tup.solicitudes.model.Estudiante;
 import ar.edu.utn.tup.solicitudes.model.EstadoSolicitud;
 import ar.edu.utn.tup.solicitudes.model.Prioridad;
@@ -32,6 +34,9 @@ import ar.edu.utn.tup.solicitudes.repository.ResponsableRepository;
 import ar.edu.utn.tup.solicitudes.repository.SolicitudRepository;
 import ar.edu.utn.tup.solicitudes.util.NotificadorConsola;
 import ar.edu.utn.tup.solicitudes.util.Utils;
+import ar.edu.utn.tup.solicitudes.web.dto.AsignarResponsableRequest;
+import ar.edu.utn.tup.solicitudes.web.dto.CambiarEstadoRequest;
+import ar.edu.utn.tup.solicitudes.web.dto.RegistrarSolicitudRequest;
 
 @RestController
 @Transactional
@@ -47,17 +52,14 @@ public class SolicitudController {
     private ResponsableRepository responsableRepository;
 
     @PostMapping("/api/solicitudes")
-    public ResponseEntity<Object> crear(@RequestBody Map<String, Object> body) {
+    public ResponseEntity<Object> crear(@RequestBody RegistrarSolicitudRequest request) {
         try {
-            String legajo = (String) body.get("legajo");
-            String textoTipo = (String) body.get("tipo");
-            String descripcion = (String) body.get("descripcion");
-            String textoPrioridad = (String) body.get("prioridad");
-            System.out.println("DEBUG crear solicitud legajo=" + legajo + " tipo=" + textoTipo);
-            validarDescripcion(descripcion);
-            TipoSolicitud tipo = parsearTipo(textoTipo);
-            Prioridad prioridad = resolverPrioridad(tipo, textoPrioridad);
-            Estudiante est = buscarEstudiante(legajo);
+            System.out.println("DEBUG crear solicitud legajo=" + request.legajo() + " tipo=" + request.tipo());
+            validarDescripcion(request.descripcion());
+            TipoSolicitud tipo = parsearTipo(request.tipo());
+            Prioridad prioridad = request.prioridad() == null ? null : parsearPrioridad(request.prioridad());
+            NuevaSolicitud nueva = new NuevaSolicitud(request.legajo(), tipo, request.descripcion(), prioridad);
+            Estudiante est = buscarEstudiante(nueva.legajo());
             LocalDateTime ahora = ahoraTruncado();
             // int dias = 2;
             // if (tipo.equals("REVISION_EXAMEN")) {
@@ -68,8 +70,7 @@ public class SolicitudController {
             // if (prioridad.equals("ALTA")) {
             //     dias = dias - 1;
             // }
-            int dias = calcularPlazoDias(tipo, prioridad);
-            Solicitud s = armarSolicitud(legajo, tipo, descripcion, prioridad, ahora, dias, est);
+            Solicitud s = armarSolicitud(nueva, est, ahora);
             s = solicitudRepository.save(s);
             return ResponseEntity.status(HttpStatus.CREATED).body(aMap(s));
         } catch (Exception e) {
@@ -93,10 +94,12 @@ public class SolicitudController {
             @RequestParam(name = "prioridad", required = false) String prioridad,
             @RequestParam(name = "legajo", required = false) String legajo) {
         try {
-            EstadoSolicitud estadoFiltro = estado == null ? null : parsearEstado(estado);
-            TipoSolicitud tipoFiltro = tipo == null ? null : parsearTipo(tipo);
-            Prioridad prioridadFiltro = prioridad == null ? null : parsearPrioridad(prioridad);
-            List<Solicitud> lista2 = filtrar(estadoFiltro, tipoFiltro, prioridadFiltro, legajo);
+            FiltroSolicitudes filtro = new FiltroSolicitudes(
+                    estado == null ? null : parsearEstado(estado),
+                    tipo == null ? null : parsearTipo(tipo),
+                    prioridad == null ? null : parsearPrioridad(prioridad),
+                    legajo);
+            List<Solicitud> lista2 = filtrar(filtro);
             lista2.sort(Comparator.comparing(Solicitud::getId));
             List<Map<String, Object>> salida = new ArrayList<>();
             for (Solicitud s : lista2) {
@@ -110,10 +113,10 @@ public class SolicitudController {
 
     @PatchMapping("/api/solicitudes/{id}/estado")
     public ResponseEntity<Object> cambiarEstado(@PathVariable("id") Long id,
-            @RequestBody Map<String, Object> body) {
+            @RequestBody CambiarEstadoRequest request) {
         try {
             Solicitud s = buscarSolicitud(id);
-            EstadoSolicitud nuevo = parsearEstado((String) body.get("estado"));
+            EstadoSolicitud nuevo = parsearEstado(request.estado());
             if (!s.getEstado().puedeTransicionarA(nuevo)) {
                 throw new RuntimeException("409|Transición inválida: " + s.getEstado() + " -> " + nuevo);
             }
@@ -135,15 +138,13 @@ public class SolicitudController {
 
     @PatchMapping("/api/solicitudes/{id}/responsable")
     public ResponseEntity<Object> asignarResponsable(@PathVariable("id") Long id,
-            @RequestBody Map<String, Object> body) {
+            @RequestBody AsignarResponsableRequest request) {
         try {
             Solicitud s = buscarSolicitud(id);
             if (s.estaCerrada()) {
                 throw new RuntimeException("409|La solicitud está cerrada: " + id);
             }
-            Object dato = body.get("responsableId");
-            Long idResp = dato == null ? null : Long.valueOf(dato.toString());
-            Responsable resp = buscarResponsableActivo(idResp);
+            Responsable resp = buscarResponsableActivo(request.responsableId());
             s.asignarResponsable(resp, ahoraTruncado());
             s = solicitudRepository.save(s);
             return ResponseEntity.ok(aMap(s));
@@ -248,30 +249,12 @@ public class SolicitudController {
                 .orElseThrow(() -> new RuntimeException("400|Prioridad inválida: " + texto));
     }
 
-    private Prioridad resolverPrioridad(TipoSolicitud tipo, String texto) {
-        if (texto != null) {
-            return parsearPrioridad(texto);
-        }
-        return tipo.prioridadPorDefecto();
-    }
-
-    private int calcularPlazoDias(TipoSolicitud tipo, Prioridad prioridad) {
-        return prioridad.ajustarPlazo(tipo.plazoDias());
-    }
-
-    private List<Solicitud> filtrar(EstadoSolicitud estado, TipoSolicitud tipo, Prioridad prioridad,
-            String legajo) {
+    private List<Solicitud> filtrar(FiltroSolicitudes filtro) {
         List<Solicitud> lista = solicitudRepository.findAll();
         List<Solicitud> lista2 = new ArrayList<>();
         for (Solicitud s : lista) {
-            if (estado == null || s.getEstado() == estado) {
-                if (tipo == null || s.getTipo() == tipo) {
-                    if (prioridad == null || s.getPrioridad() == prioridad) {
-                        if (legajo == null || s.getEstudiante().getLegajo().equals(legajo)) {
-                            lista2.add(s);
-                        }
-                    }
-                }
+            if (filtro.coincideCon(s)) {
+                lista2.add(s);
             }
         }
         return lista2;
@@ -315,17 +298,16 @@ public class SolicitudController {
         return r;
     }
 
-    private Solicitud armarSolicitud(String legajo, TipoSolicitud tipo, String descripcion, Prioridad prioridad,
-            LocalDateTime creacion, int dias, Estudiante est) {
+    private Solicitud armarSolicitud(NuevaSolicitud nueva, Estudiante est, LocalDateTime creacion) {
         Solicitud s = new Solicitud();
-        s.setTipo(tipo);
-        s.setDescripcion(descripcion);
-        s.setPrioridad(prioridad);
+        s.setTipo(nueva.tipo());
+        s.setDescripcion(nueva.descripcion());
+        s.setPrioridad(nueva.prioridadEfectiva());
         s.setEstado(EstadoSolicitud.PENDIENTE);
         s.setFechaCreacion(creacion);
-        s.setFechaVencimiento(Utils.calcularVencimiento(creacion, dias));
+        s.setFechaVencimiento(Utils.calcularVencimiento(creacion, nueva.plazoDias()));
         s.setEstudiante(est);
-        System.out.println("DEBUG solicitud armada para " + legajo + " vence en " + dias + " dias");
+        System.out.println("DEBUG solicitud armada para " + nueva.legajo() + " vence en " + nueva.plazoDias() + " dias");
         return s;
     }
 
